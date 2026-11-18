@@ -858,10 +858,52 @@ function EmptyModule({ section }: { section: BusinessSection }) {
   );
 }
 
+type GlobalSearchResult={result_type:string;result_id:string;title:string;subtitle:string;target_section:BusinessSection};
+type BusinessNotification={notification_key:string;kind:string;title:string;body:string;created_at:string;target_section:BusinessSection};
 function BusinessWorkspace({ onSignOut, email }: { onSignOut: () => void; email: string }) {
   const [active, setActive] = useState<BusinessSection>('overview');
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchOpen,setSearchOpen]=useState(false);
+  const [searchQuery,setSearchQuery]=useState('');
+  const [searchResults,setSearchResults]=useState<GlobalSearchResult[]>([]);
+  const [searchBusy,setSearchBusy]=useState(false);
+  const [searchError,setSearchError]=useState('');
+  const [notificationsOpen,setNotificationsOpen]=useState(false);
+  const [notifications,setNotifications]=useState<BusinessNotification[]>([]);
+  const [notificationsBusy,setNotificationsBusy]=useState(false);
+  const [notificationsError,setNotificationsError]=useState('');
+  const [profileOpen,setProfileOpen]=useState(false);
   const meta = sectionMeta[active];
+
+  useEffect(()=>{
+    let alive=true;
+    const query=searchQuery.trim();
+    if(query.length<2){setSearchResults([]);setSearchError('');setSearchBusy(false);return;}
+    setSearchBusy(true);setSearchError('');
+    const timer=window.setTimeout(async()=>{
+      if(!supabase)return;
+      const {data,error}=await supabase.rpc('business_global_search',{p_query:query});
+      if(!alive)return;
+      if(error)setSearchError(error.message);else setSearchResults((data??[]) as GlobalSearchResult[]);
+      setSearchBusy(false);
+    },220);
+    return()=>{alive=false;window.clearTimeout(timer);};
+  },[searchQuery]);
+
+  const loadNotifications=async()=>{
+    if(!supabase)return;
+    setNotificationsBusy(true);setNotificationsError('');
+    const {data,error}=await supabase.rpc('business_get_notifications');
+    if(error)setNotificationsError(error.message);else setNotifications((data??[]) as BusinessNotification[]);
+    setNotificationsBusy(false);
+  };
+  const openNotifications=()=>{
+    const next=!notificationsOpen;
+    setNotificationsOpen(next);setSearchOpen(false);setProfileOpen(false);
+    if(next)void loadNotifications();
+  };
+  const openSearch=()=>{setSearchOpen(true);setNotificationsOpen(false);setProfileOpen(false);};
+  const goToResult=(section:BusinessSection)=>{chooseSection(section);setSearchOpen(false);setSearchQuery('');setSearchResults([]);};
 
   const chooseSection = (section: BusinessSection) => {
     setActive(section);
@@ -900,7 +942,22 @@ function BusinessWorkspace({ onSignOut, email }: { onSignOut: () => void; email:
       <main className="main-area">
         <header className="topbar">
           <div className="topbar-left"><button className="icon-button mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Open menu"><Menu size={20} /></button><div className="breadcrumb">Web2Table <span>/</span> <strong>{meta.title}</strong></div></div>
-          <div className="topbar-actions"><div className="environment-chip"><span /> Internal workspace</div><button className="icon-button" aria-label="Search"><Search size={18} /></button><button className="icon-button notification-button" aria-label="Notifications"><Bell size={18} /></button><div className="topbar-divider" /><div className="topbar-user"><img src="https://raw.githubusercontent.com/web2table/Web2Table-Billing/main/web2table1.png" alt="Web2Table" /></div></div>
+          <div className="topbar-actions"><div className="environment-chip"><span /> Internal workspace</div>
+            <div className="topbar-action-wrap"><button className={searchOpen?'icon-button is-open':'icon-button'} aria-label="Search workspace" title="Search workspace" aria-expanded={searchOpen} onClick={openSearch}><Search size={18}/></button>
+              {searchOpen&&<div className="header-popover search-popover"><div className="popover-search-input"><Search size={16}/><input autoFocus value={searchQuery} onChange={e=>setSearchQuery(e.target.value)} placeholder="Search tenants, subscriptions, expenses…" aria-label="Search workspace"/><button type="button" onClick={()=>{setSearchOpen(false);setSearchQuery('');}} aria-label="Close search"><X size={15}/></button></div>
+                {searchQuery.trim().length<2?<div className="popover-hint">Type at least 2 characters to search.</div>:searchBusy?<div className="popover-hint">Searching…</div>:searchError?<div className="popover-hint popover-error">{searchError}</div>:searchResults.length===0?<div className="popover-hint">No matching records found.</div>:<div className="popover-results">{searchResults.map(result=><button key={result.result_type+result.result_id} type="button" className="popover-result" onClick={()=>goToResult(result.target_section)}><span className="popover-result-icon">{result.result_type==='tenant'?'T':result.result_type==='subscription'?'S':'₱'}</span><span><strong>{result.title}</strong><small>{result.subtitle}</small></span><small className="popover-result-type">{result.result_type}</small></button>)}</div>}
+              </div>}
+            </div>
+            <div className="topbar-action-wrap"><button className={notificationsOpen?'icon-button notification-button is-open':'icon-button notification-button'} aria-label="Notifications" title="Notifications" aria-expanded={notificationsOpen} onClick={openNotifications}><Bell size={18}/>{notifications.length>0&&<span className="notification-count">{notifications.length>9?'9+':notifications.length}</span>}</button>
+              {notificationsOpen&&<div className="header-popover notifications-popover"><div className="popover-heading"><div><strong>Notifications</strong><small>Business alerts and recent activity</small></div><button type="button" onClick={()=>void loadNotifications()} aria-label="Refresh notifications"><ArrowDownRight size={15}/></button></div>
+                {notificationsBusy?<div className="popover-hint">Loading notifications…</div>:notificationsError?<div className="popover-hint popover-error">{notificationsError}</div>:notifications.length===0?<div className="popover-empty"><Bell size={22}/><strong>You're all caught up</strong><span>Upcoming renewals, overdue subscriptions and important activity will appear here.</span></div>:<div className="popover-notification-list">{notifications.map(n=><button type="button" key={n.notification_key} className="popover-notification" onClick={()=>{goToResult(n.target_section);setNotificationsOpen(false);}}><span className={`notification-kind notification-kind-${n.kind}`}>{n.kind==='warning'?'!':n.kind==='reminder'?'◷':'•'}</span><span><strong>{n.title}</strong><small>{n.body}</small><time>{new Intl.DateTimeFormat('en-PH',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Manila'}).format(new Date(n.created_at))}</time></span></button>)}</div>}
+              </div>}
+            </div>
+            <div className="topbar-divider" />
+            <div className="topbar-action-wrap"><button className="topbar-user topbar-user-button" aria-label="Account menu" aria-expanded={profileOpen} onClick={()=>{setProfileOpen(!profileOpen);setSearchOpen(false);setNotificationsOpen(false);}}><img src="https://raw.githubusercontent.com/web2table/Web2Table-Billing/main/web2table1.png" alt="Web2Table account"/></button>
+              {profileOpen&&<div className="header-popover profile-popover"><div className="profile-popover-identity"><strong>{email}</strong><span>Business Owner</span><small>Web2Table Business</small></div><div className="profile-popover-security"><ShieldCheck size={15}/><span>Two-factor authentication required</span></div><button type="button" className="profile-signout" onClick={onSignOut}>Sign out <ExternalLink size={14}/></button></div>}
+            </div>
+          </div>
         </header>
 
         <div className="page-content">
