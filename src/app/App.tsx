@@ -550,6 +550,115 @@ function SubscriptionsWorkspace() {
   </div>;
 }
 
+type SubscriptionPaymentRow = {
+  charge_id: string;
+  tenant_id: string;
+  tenant_name: string;
+  tenant_slug: string;
+  subscription_id: string;
+  amount_php: number;
+  status: string;
+  billing_period_start: string | null;
+  billing_period_end: string | null;
+  due_at: string;
+  paid_at: string | null;
+  payment_method: string | null;
+  payment_reference: string | null;
+  payment_notes: string | null;
+  created_at: string;
+};
+
+function paymentMethodLabel(method: string | null) {
+  if (!method) return '—';
+  return ({ bank_transfer: 'Bank transfer', gcash: 'GCash', maya: 'Maya', cash: 'Cash', other: 'Other' } as Record<string,string>)[method] ?? method;
+}
+function PaymentsWorkspace() {
+  const [rows, setRows] = useState<SubscriptionPaymentRow[]>([]);
+  const [busy, setBusy] = useState(true);
+  const [error, setError] = useState('');
+  const [filter, setFilter] = useState('all');
+  const [selected, setSelected] = useState<SubscriptionPaymentRow | null>(null);
+  const [method, setMethod] = useState('bank_transfer');
+  const [reference, setReference] = useState('');
+  const [notes, setNotes] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState('');
+
+  const load = async () => {
+    if (!supabase) return;
+    setBusy(true); setError('');
+    const { data, error: loadError } = await supabase.rpc('business_list_subscription_payments');
+    if (loadError) setError(loadError.message);
+    else setRows((data ?? []) as SubscriptionPaymentRow[]);
+    setBusy(false);
+  };
+  useEffect(() => { void load(); }, []);
+
+  const pending = rows.filter(row => ['pending','processing','failed'].includes(row.status));
+  const paid = rows.filter(row => row.status === 'paid');
+  const outstanding = pending.reduce((sum,row) => sum + Number(row.amount_php),0);
+  const collected = paid.reduce((sum,row) => sum + Number(row.amount_php),0);
+  const visible = rows.filter(row => filter === 'all' || (filter === 'outstanding' ? ['pending','processing','failed'].includes(row.status) : row.status === filter));
+
+  const openRecord = (row: SubscriptionPaymentRow) => {
+    setSelected(row); setMethod('bank_transfer'); setReference(''); setNotes(''); setFormError('');
+  };
+  const recordPayment = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!supabase || !selected) return;
+    setSaving(true); setFormError('');
+    const { error: saveError } = await supabase.rpc('business_record_subscription_payment', {
+      p_charge_id: selected.charge_id,
+      p_payment_method: method,
+      p_payment_reference: reference,
+      p_payment_notes: notes,
+      p_paid_at: null
+    });
+    setSaving(false);
+    if (saveError) { setFormError(saveError.message); return; }
+    setSelected(null);
+    await load();
+  };
+
+  return <div className="payments-workspace">
+    <div className="payment-notice"><strong>Subscription collections only</strong><span>These are payments owed to Web2Table by restaurant tenants. Restaurant customer order payments are not included here.</span></div>
+    <div className="subscription-summary-grid payment-summary-grid">
+      <article className="subscription-summary-card"><span>Total charges</span><strong>{busy ? '—' : rows.length}</strong><small>Generated subscription charges</small></article>
+      <article className="subscription-summary-card"><span>Collected</span><strong>{busy ? '—' : formatPHP(collected)}</strong><small>Marked paid after verification</small></article>
+      <article className="subscription-summary-card"><span>Outstanding</span><strong>{busy ? '—' : formatPHP(outstanding)}</strong><small>Pending, processing or failed</small></article>
+      <article className="subscription-summary-card"><span>Paid records</span><strong>{busy ? '—' : paid.length}</strong><small>Confirmed collections</small></article>
+    </div>
+    <section className="panel subscription-list-panel">
+      <div className="panel-heading payment-panel-heading"><div><h2>Subscription charges</h2><p>Review charges and record payments you've actually received.</p></div><div className="payment-toolbar"><select aria-label="Filter charges" value={filter} onChange={e => setFilter(e.target.value)}><option value="all">All charges</option><option value="outstanding">Outstanding</option><option value="paid">Paid</option><option value="voided">Voided</option><option value="refunded">Refunded</option></select><button className="button-secondary" type="button" onClick={() => void load()} disabled={busy}>{busy ? 'Refreshing…' : 'Refresh'}</button></div></div>
+      {error && <div className="pricing-message pricing-error" role="alert">{error}</div>}
+      {busy && rows.length === 0 ? <div className="pricing-loading">Loading subscription charges…</div> : visible.length === 0 ? <div className="pricing-loading">{rows.length === 0 ? 'No subscription charges have been generated yet.' : 'No charges match this filter.'}</div> :
+        <div className="pricing-table-wrap"><table className="pricing-table subscription-table payment-table"><thead><tr><th>Tenant</th><th>Billing period</th><th>Due date</th><th>Amount</th><th>Status</th><th>Method / reference</th><th>Paid date</th><th>Action</th></tr></thead><tbody>
+          {visible.map(row => <tr key={row.charge_id}>
+            <td><strong>{row.tenant_name}</strong><small className="subscription-slug">{row.tenant_slug}</small></td>
+            <td>{formatManilaDate(row.billing_period_start)} – {formatManilaDate(row.billing_period_end)}</td>
+            <td>{formatManilaDate(row.due_at)}</td>
+            <td><strong>{formatPHP(Number(row.amount_php))}</strong></td>
+            <td><span className={row.status === 'paid' ? 'subscription-state' : 'subscription-state subscription-unassigned'}>{row.status}</span></td>
+            <td>{paymentMethodLabel(row.payment_method)}{row.payment_reference && <small className="subscription-slug">{row.payment_reference}</small>}</td>
+            <td>{formatManilaDate(row.paid_at)}</td>
+            <td>{['pending','processing','failed'].includes(row.status) ? <button className="button-secondary subscription-edit-button" type="button" onClick={() => openRecord(row)}>Record payment</button> : '—'}</td>
+          </tr>)}
+        </tbody></table></div>}
+    </section>
+    {selected && <form className="subscription-assignment-form payment-record-form" onSubmit={recordPayment}>
+      <div className="panel-heading"><div><h2>Record payment received</h2><p>{selected.tenant_name} · {formatPHP(Number(selected.amount_php))} subscription charge</p></div><button className="button-secondary" type="button" onClick={() => setSelected(null)}>Close</button></div>
+      <div className="payment-confirm-warning"><strong>Only continue after verifying the funds were received.</strong><span>This records an existing payment. It does not charge a card, create a PayMongo checkout, or move money.</span></div>
+      <div className="subscription-form-grid">
+        <label>Payment method<select required value={method} onChange={e => setMethod(e.target.value)}><option value="bank_transfer">Bank transfer</option><option value="gcash">GCash</option><option value="maya">Maya</option><option value="cash">Cash</option><option value="other">Other</option></select></label>
+        <label>Reference number <span className="subscription-optional">Optional</span><input value={reference} onChange={e => setReference(e.target.value)} placeholder="Transaction ID or deposit reference" /></label>
+        <label className="subscription-notes-field">Internal notes <span className="subscription-optional">Optional</span><textarea rows={2} value={notes} onChange={e => setNotes(e.target.value)} placeholder="e.g. Verified against bank statement" /></label>
+      </div>
+      {formError && <div className="pricing-message pricing-error" role="alert">{formError}</div>}
+      <div className="subscription-form-footer"><span>Confirming this will mark the charge as paid and record your account as the receiver.</span><button className="button-primary" type="submit" disabled={saving}>{saving ? 'Saving…' : 'Confirm payment received'}</button></div>
+    </form>}
+  </div>;
+}
+
 function EmptyModule({ section }: { section: BusinessSection }) {
   const meta = sectionMeta[section];
   return (
@@ -616,7 +725,7 @@ function BusinessWorkspace({ onSignOut, email }: { onSignOut: () => void; email:
 
           {!isSupabaseConfigured && <div className="connection-banner"><div className="connection-icon"><Command size={17} /></div><div><strong>Data connection not configured</strong><span>Add the public Supabase URL and publishable key to the deployment environment. No live financial figures are being shown.</span></div></div>}
 
-          {active === 'settings' ? <PricingSettings /> : active === 'subscriptions' ? <SubscriptionsWorkspace /> : active === 'overview' ? (
+          {active === 'settings' ? <PricingSettings /> : active === 'subscriptions' ? <SubscriptionsWorkspace /> : active === 'payments' ? <PaymentsWorkspace /> : active === 'overview' ? (
             <>
               <div className="section-title-row"><div><h2>Performance snapshot</h2><p>Live figures will appear after the trusted data integration is connected.</p></div><button className="period-button">All time <ChevronDown size={14} /></button></div>
               <div className="metrics-grid">
