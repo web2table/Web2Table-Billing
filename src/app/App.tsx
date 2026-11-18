@@ -119,6 +119,12 @@ function MFASetupScreen({ onComplete }: { onComplete: () => void }) {
       factorId, challengeId: challenge.id, code: code.replace(/\\s/g, ''),
     });
     if (verifyError) { setError(verifyError.message); setBusy(false); return; }
+    const { data: assurance, error: assuranceError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (assuranceError || assurance.currentLevel !== 'aal2') {
+      setError(assuranceError?.message ?? 'Two-factor verification did not reach the required security level. Please try again.');
+      setBusy(false);
+      return;
+    }
     onComplete();
     setBusy(false);
   };
@@ -150,8 +156,18 @@ function MFAChallengeScreen({ onComplete }: { onComplete: () => void }) {
     const { data: challenge, error: challengeError } = await supabase.auth.mfa.challenge({ factorId: factor.id });
     if (challengeError) { setError(challengeError.message); setBusy(false); return; }
     const { error: verifyError } = await supabase.auth.mfa.verify({ factorId: factor.id, challengeId: challenge.id, code: code.replace(/\\s/g, '') });
-    if (verifyError) setError(verifyError.message);
-    else onComplete();
+    if (verifyError) {
+      setError(verifyError.message);
+      setBusy(false);
+      return;
+    }
+    const { data: assurance, error: assuranceError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (assuranceError || assurance.currentLevel !== 'aal2') {
+      setError(assuranceError?.message ?? 'Two-factor verification did not reach the required security level. Please try again.');
+      setBusy(false);
+      return;
+    }
+    onComplete();
     setBusy(false);
   };
   return <main className="auth-screen"><section className="auth-card">
@@ -172,38 +188,59 @@ export function App() {
     const client = supabase;
     if (!client) return;
     let alive = true;
-    const verifySession = async () => {
-      const { data: sessionData } = await client.auth.getSession();
-      if (!alive) return;
-      if (!sessionData.session) { setStatus('signed-out'); setEmail(''); return; }
+
+    const resolveAccess = async () => {
       const { data, error } = await client.auth.getUser();
       if (!alive) return;
-      if (!error && data.user && hasBusinessOwnerAccess(data.user)) {
-        setEmail(data.user.email ?? 'Business Owner');
-        setStatus('authorized');
-      } else {
+      if (error || !data.user || !hasBusinessOwnerAccess(data.user)) {
         await client.auth.signOut();
         if (alive) { setEmail(''); setStatus('denied'); }
+        return;
       }
+
+      setEmail(data.user.email ?? 'Business Owner');
+      const { data: factors, error: factorsError } = await client.auth.mfa.listFactors();
+      if (!alive) return;
+      if (factorsError) {
+        setEmail(''); setStatus('denied');
+        return;
+      }
+
+      const verifiedTotp = factors.totp.some(factor => factor.status === 'verified');
+      if (!verifiedTotp) {
+        setStatus('mfa-enroll');
+        return;
+      }
+
+      const { data: assurance, error: assuranceError } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (!alive) return;
+      if (assuranceError) {
+        setEmail(''); setStatus('denied');
+        return;
+      }
+      setStatus(assurance.currentLevel === 'aal2' ? 'authorized' : 'mfa-challenge');
+    };
+
+    const verifySession = async () => {
+      const { data: sessionData, error: sessionError } = await client.auth.getSession();
+      if (!alive) return;
+      if (sessionError || !sessionData.session) {
+        setStatus('signed-out'); setEmail(''); return;
+      }
+      await resolveAccess();
     };
     void verifySession();
+
     const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT' || !session) {
         if (alive) { setEmail(''); setStatus('signed-out'); }
         return;
       }
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-        queueMicrotask(() => { void client.auth.getUser().then(({ data, error }) => {
-          if (!alive) return;
-          if (!error && data.user && hasBusinessOwnerAccess(data.user)) {
-            setEmail(data.user.email ?? 'Business Owner'); setStatus('authorized');
-          } else {
-            void client.auth.signOut();
-            setEmail(''); setStatus('denied');
-          }
-        }); });
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED' || event === 'MFA_CHALLENGE_VERIFIED') {
+        queueMicrotask(() => { void resolveAccess(); });
       }
     });
+
     return () => { alive = false; subscription.unsubscribe(); };
   }, []);
 
@@ -215,6 +252,8 @@ export function App() {
 
   if (status === 'loading') return <main className="auth-screen"><div className="auth-loading">Checking secure session…</div></main>;
   if (status === 'unconfigured') return <main className="auth-screen"><section className="auth-card"><h1>Business login unavailable</h1><p className="auth-intro">The Supabase URL and publishable key are not configured for this deployment.</p></section></main>;
+  if (status === 'mfa-enroll') return <MFASetupScreen onComplete={() => setStatus('authorized')} />;
+  if (status === 'mfa-challenge') return <MFAChallengeScreen onComplete={() => setStatus('authorized')} />;
   if (status !== 'authorized') return <LoginScreen key={status} denied={status === 'denied'} />;
   return <BusinessWorkspace onSignOut={signOut} email={email} />;
 }
