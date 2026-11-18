@@ -761,6 +761,32 @@ function FinancialReportsWorkspace(){
  </div>;
 }
 
+type BusinessActivityRow={id:string;actor_email:string|null;action:string;entity_type:string;entity_id:string|null;summary:string;metadata:Record<string,unknown>;created_at:string};
+function ActivityLogWorkspace(){
+ const [rows,setRows]=useState<BusinessActivityRow[]>([]);
+ const [busy,setBusy]=useState(true);
+ const [error,setError]=useState('');
+ const [filter,setFilter]=useState('all');
+ const load=async()=>{if(!supabase)return;setBusy(true);setError('');const {data,error:e}=await supabase.rpc('business_list_activity_logs',{p_limit:250,p_entity_type:filter==='all'?null:filter});if(e)setError(e.message);else setRows((data??[]) as BusinessActivityRow[]);setBusy(false);};
+ useEffect(()=>{void load();},[filter]);
+ const dateLabel=(v:string)=>new Intl.DateTimeFormat('en-PH',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Manila'}).format(new Date(v));
+ const actionLabel=(v:string)=>v.charAt(0).toUpperCase()+v.slice(1);
+ return <div className="business-module">
+  <div className="module-toolbar"><div><h2>Business activity</h2><p>Audit trail of expense and subscription charge changes, including who made them and when.</p></div><div className="module-toolbar-actions"><select className="expense-filter" value={filter} onChange={e=>setFilter(e.target.value)}><option value="all">All activity</option><option value="expense">Expenses</option><option value="subscription_charge">Subscription charges</option></select><button className="button-secondary" onClick={()=>void load()} disabled={busy}>Refresh</button></div></div>
+  {error&&<div className="pricing-message pricing-error" role="alert">{error}</div>}
+  <section className="panel subscription-list-panel">
+   <div className="panel-heading"><div><h2>Activity history</h2><p>Latest 250 events · Times shown in Asia/Manila</p></div><span className="pricing-tag">{rows.length} events</span></div>
+   {busy&&rows.length===0?<div className="pricing-loading">Loading activity…</div>:rows.length===0?<div className="pricing-loading">No recorded activity yet. New expense and subscription charge changes will appear here.</div>:
+    <div className="activity-log-list">{rows.map(row=><article className="activity-log-row" key={row.id}>
+      <div className="activity-log-symbol"><ActivityIcon/></div>
+      <div className="activity-log-main"><div className="activity-log-title"><strong>{row.summary}</strong><span className="activity-log-action">{actionLabel(row.action)}</span></div><div className="activity-log-meta"><span>{row.actor_email??'System / automated process'}</span><span>{row.entity_type==='expense'?'Expense':'Subscription charge'}</span><time>{dateLabel(row.created_at)}</time></div>
+      {row.metadata&&Object.keys(row.metadata).length>0&&<div className="activity-log-details">{row.metadata.amount_php!==undefined&&<span>{formatPHP(Number(row.metadata.amount_php))}</span>}{row.metadata.category!==undefined&&<span>{String(row.metadata.category)}</span>}{row.metadata.status!==undefined&&<span>Status: {String(row.metadata.status)}</span>}{row.metadata.expense_date!==undefined&&<span>Date: {String(row.metadata.expense_date)}</span>}</div>}
+      </div>
+    </article>)}</div>}
+  </section>
+ </div>;
+}
+
 function EmptyModule({ section }: { section: BusinessSection }) {
   const meta = sectionMeta[section];
   return (
@@ -821,7 +847,7 @@ function BusinessWorkspace({ onSignOut, email }: { onSignOut: () => void; email:
         <div className="page-content">
           {!isSupabaseConfigured && <div className="connection-banner"><div className="connection-icon"><Command size={17} /></div><div><strong>Data connection not configured</strong><span>Add the public Supabase URL and publishable key to the deployment environment. No live financial figures are being shown.</span></div></div>}
 
-          {active === 'settings' ? <PricingSettings /> : active === 'subscriptions' ? <SubscriptionsWorkspace /> : active === 'payments' ? <PaymentsWorkspace /> : active === 'expenses' ? <ExpensesWorkspace /> : active === 'reports' ? <FinancialReportsWorkspace /> : active === 'overview' ? (
+          {active === 'settings' ? <PricingSettings /> : active === 'subscriptions' ? <SubscriptionsWorkspace /> : active === 'payments' ? <PaymentsWorkspace /> : active === 'expenses' ? <ExpensesWorkspace /> : active === 'reports' ? <FinancialReportsWorkspace /> : active === 'audit' ? <ActivityLogWorkspace /> : active === 'overview' ? (
             <>
               <div className="section-title-row section-title-row-compact"><button className="period-button">All time <ChevronDown size={14} /></button></div>
               <div className="metrics-grid">
