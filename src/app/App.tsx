@@ -231,6 +231,90 @@ function MetricCard({ label, value, note, icon: Icon }: {
   );
 }
 
+
+type PlanPrice = { id: string; amount_php: number; effective_at: string; change_note: string };
+type SubscriptionPlan = { id: string; code: string; name: string; description: string; billing_interval: string; is_active: boolean };
+function PricingSettings() {
+  const [plan, setPlan] = useState<SubscriptionPlan | null>(null);
+  const [prices, setPrices] = useState<PlanPrice[]>([]);
+  const [name, setName] = useState('Standard');
+  const [description, setDescription] = useState('Web2Table restaurant subscription. Branches are included.');
+  const [amount, setAmount] = useState('1500');
+  const [effectiveAt, setEffectiveAt] = useState(() => {
+    const d = new Date(); d.setDate(d.getDate() + 30);
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0,16);
+  });
+  const [busy, setBusy] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const load = async () => {
+    if (!supabase) return;
+    setBusy(true); setError('');
+    const { data: plans, error: planError } = await supabase.from('business_subscription_plans').select('*').eq('code','standard-monthly').maybeSingle();
+    if (planError) { setError(planError.message); setBusy(false); return; }
+    if (!plans) { setError('The Standard plan has not been created yet.'); setBusy(false); return; }
+    const { data: history, error: priceError } = await supabase.from('business_subscription_plan_prices').select('id,amount_php,effective_at,change_note').eq('plan_id', plans.id).order('effective_at',{ascending:false});
+    if (priceError) { setError(priceError.message); setBusy(false); return; }
+    setPlan(plans as SubscriptionPlan); setName(plans.name); setDescription(plans.description);
+    const rows = (history ?? []) as PlanPrice[];
+    setPrices(rows);
+    const current = rows.find(row => new Date(row.effective_at).getTime() <= Date.now()) ?? rows[0];
+    if (current) setAmount(String(current.amount_php));
+    setBusy(false);
+  };
+  useEffect(() => { void load(); }, []);
+  const save = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!supabase || !plan) return;
+    const numeric = Number(amount);
+    if (!Number.isFinite(numeric) || numeric <= 0) { setError('Enter a valid price greater than zero.'); return; }
+    const effective = new Date(effectiveAt);
+    if (Number.isNaN(effective.getTime())) { setError('Choose a valid effective date.'); return; }
+    setSaving(true); setError(''); setNotice('');
+    const { error: updateError } = await supabase.from('business_subscription_plans').update({name:name.trim(),description:description.trim(),updated_at:new Date().toISOString()}).eq('id',plan.id);
+    if (updateError) { setError(updateError.message); setSaving(false); return; }
+    const { data: userData } = await supabase.auth.getUser();
+    const { error: insertError } = await supabase.from('business_subscription_plan_prices').insert({
+      plan_id:plan.id, amount_php:numeric, effective_at:effective.toISOString(),
+      created_by:userData.user?.id ?? null, change_note:'Price updated from Business Settings'
+    });
+    if (insertError) { setError(insertError.message); setSaving(false); await load(); return; }
+    setNotice('Plan details and a new price version have been saved.');
+    await load(); setSaving(false);
+  };
+  const current = prices.find(row => new Date(row.effective_at).getTime() <= Date.now());
+  const upcoming = prices.filter(row => new Date(row.effective_at).getTime() > Date.now()).sort((x,y)=>new Date(x.effective_at).getTime()-new Date(y.effective_at).getTime())[0];
+  return <div className="pricing-settings">
+    <section className="panel pricing-panel">
+      <div className="panel-heading"><div><h2>Subscription plan</h2><p>Manage the price charged to Web2Table restaurant tenants.</p></div><span className="pricing-tag">PHP · Monthly</span></div>
+      {error && <div className="pricing-message pricing-error" role="alert">{error}</div>}
+      {notice && <div className="pricing-message pricing-success" role="status">{notice}</div>}
+      {busy ? <div className="pricing-loading">Loading plan settings…</div> : <form className="pricing-form" onSubmit={save}>
+        <div className="pricing-fields">
+          <div><label htmlFor="plan-name">Plan name</label><input id="plan-name" value={name} onChange={e=>setName(e.target.value)} required maxLength={80}/></div>
+          <div><label htmlFor="plan-price">Monthly price (PHP)</label><div className="price-input"><span>₱</span><input id="plan-price" type="number" min="1" step="0.01" value={amount} onChange={e=>setAmount(e.target.value)} required/></div></div>
+        </div>
+        <div><label htmlFor="plan-description">Description</label><textarea id="plan-description" rows={3} value={description} onChange={e=>setDescription(e.target.value)} maxLength={500}/></div>
+        <div><label htmlFor="price-effective">New price effective from</label><input id="price-effective" type="datetime-local" value={effectiveAt} onChange={e=>setEffectiveAt(e.target.value)} required/><small>Use a future date to schedule a price increase. The new price is intended to apply at subscription renewal.</small></div>
+        <div className="pricing-note"><ShieldCheck size={17}/><span>Price changes are saved as new versions. Previous prices remain in history; existing subscribers will keep their current billing amount until renewal logic is connected.</span></div>
+        <div className="pricing-actions"><button className="button-primary" type="submit" disabled={saving || !plan}>{saving ? 'Saving…' : 'Save plan and price'}</button></div>
+      </form>}
+    </section>
+    <section className="panel pricing-status">
+      <div className="panel-heading"><div><h2>Pricing status</h2><p>Current and scheduled pricing</p></div></div>
+      <div className="pricing-status-grid">
+        <div><span>Current price</span><strong>{current ? '₱'+Number(current.amount_php).toLocaleString('en-PH',{minimumFractionDigits:2}) : '—'}</strong><small>{current ? new Date(current.effective_at).toLocaleDateString('en-PH',{dateStyle:'medium',timeZone:'Asia/Manila'}) : 'No active price'}</small></div>
+        <div><span>Next scheduled price</span><strong>{upcoming ? '₱'+Number(upcoming.amount_php).toLocaleString('en-PH',{minimumFractionDigits:2}) : 'None'}</strong><small>{upcoming ? new Date(upcoming.effective_at).toLocaleString('en-PH',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Manila'}) : 'No scheduled increase'}</small></div>
+      </div>
+    </section>
+    <section className="panel pricing-history">
+      <div className="panel-heading"><div><h2>Price history</h2><p>Every price version is retained for audit and billing reference.</p></div></div>
+      {prices.length ? <div className="pricing-table-wrap"><table className="pricing-table"><thead><tr><th>Monthly price</th><th>Effective date (Manila)</th><th>Status</th></tr></thead><tbody>{prices.map(row=>{const future=new Date(row.effective_at).getTime()>Date.now();return <tr key={row.id}><td>₱{Number(row.amount_php).toLocaleString('en-PH',{minimumFractionDigits:2})}</td><td>{new Date(row.effective_at).toLocaleString('en-PH',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Manila'})}</td><td><span className={future?'price-status-upcoming':'price-status-current'}>{future?'Scheduled':'Effective'}</span></td></tr>})}</tbody></table></div> : <div className="pricing-loading">No price history available.</div>}
+    </section>
+  </div>;
+}
+
 function EmptyModule({ section }: { section: BusinessSection }) {
   const meta = sectionMeta[section];
   return (
@@ -297,7 +381,7 @@ function BusinessWorkspace({ onSignOut, email }: { onSignOut: () => void; email:
 
           {!isSupabaseConfigured && <div className="connection-banner"><div className="connection-icon"><Command size={17} /></div><div><strong>Data connection not configured</strong><span>Add the public Supabase URL and publishable key to the deployment environment. No live financial figures are being shown.</span></div></div>}
 
-          {active === 'overview' ? (
+          {active === 'settings' ? <PricingSettings /> : active === 'overview' ? (
             <>
               <div className="section-title-row"><div><h2>Performance snapshot</h2><p>Live figures will appear after the trusted data integration is connected.</p></div><button className="period-button">All time <ChevronDown size={14} /></button></div>
               <div className="metrics-grid">
@@ -315,7 +399,7 @@ function BusinessWorkspace({ onSignOut, email }: { onSignOut: () => void; email:
                 <section className="panel"><div className="panel-heading"><div><h2>Payment collection</h2><p>Recent verified collections</p></div><button className="text-action" onClick={() => chooseSection('payments')}>View all</button></div><div className="list-empty">Verified PayMongo payments will appear here.</div></section>
               </div>
             </>
-          ) : <section className="panel module-panel"><EmptyModule section={active} /></section>}
+           ) : <section className="panel module-panel"><EmptyModule section={active} /></section>}
 
           <footer className="page-footer"><span>© 2026 Web2Table Business</span><span>PHP · Asia/Manila</span><span>Internal use only</span></footer>
         </div>
