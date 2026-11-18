@@ -155,3 +155,21 @@ h1,h2,h3,p { margin-top:0; }.page-heading h1 { font:800 27px Manrope;letter-spac
 @media(max-width:760px) {
   .topbar { background:#101b2f; }
 }
+
+
+/* White workspace header, retaining dark navy sidebar */
+.topbar {
+  background:#ffffff;
+  border-bottom:1px solid #e2e8f0;
+}
+.breadcrumb { color:#64748b; }
+.breadcrumb span { color:#cbd5e1; }
+.breadcrumb strong { color:#101b2f; }
+.environment-chip { background:#f1f5f9;color:#475569; }
+.icon-button { color:#64748b; }
+.icon-button:hover { background:#f1f5f9;color:#101b2f; }
+.topbar-divider { background:#e2e8f0; }
+.topbar-user { background:#e2e8f0; }
+@media(max-width:760px) {
+  .topbar { background:#ffffff; }
+}
