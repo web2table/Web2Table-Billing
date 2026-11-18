@@ -7,7 +7,7 @@ import {
 import { navigation, sectionMeta, type BusinessSection } from './navigation';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 
-type AuthStatus = 'loading' | 'signed-out' | 'authorized' | 'denied' | 'unconfigured';
+type AuthStatus = 'loading' | 'signed-out' | 'authorized' | 'mfa-enroll' | 'mfa-challenge' | 'denied' | 'unconfigured';
 
 function hasBusinessOwnerAccess(user: { app_metadata?: Record<string, unknown> }) {
   return user.app_metadata?.business_access === true &&
@@ -74,6 +74,94 @@ function LoginScreen({ denied = false }: { denied?: boolean }) {
       <div className="auth-copyright">© 2026 Web2Table · Internal use only</div>
     </main>
   );
+}
+
+
+function MFASetupScreen({ onComplete }: { onComplete: () => void }) {
+  const [factorId, setFactorId] = useState('');
+  const [qrCode, setQrCode] = useState('');
+  const [secret, setSecret] = useState('');
+  const [code, setCode] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let alive = true;
+    const setup = async () => {
+      if (!supabase) return;
+      const { data: factors, error: listError } = await supabase.auth.mfa.listFactors();
+      if (listError) { if (alive) setError(listError.message); return; }
+      const pending = factors.all.filter(f => f.factor_type === 'totp' && f.status !== 'verified');
+      for (const factor of pending) {
+        await supabase.auth.mfa.unenroll({ factorId: factor.id });
+      }
+      const { data, error: enrollError } = await supabase.auth.mfa.enroll({
+        factorType: 'totp',
+        friendlyName: 'Web2Table Business authenticator',
+      });
+      if (!alive) return;
+      if (enrollError) { setError(enrollError.message); return; }
+      setFactorId(data.id);
+      setQrCode(data.totp.qr_code);
+      setSecret(data.totp.secret);
+    };
+    void setup();
+    return () => { alive = false; };
+  }, []);
+
+  const enable = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!supabase || !factorId) return;
+    setBusy(true); setError('');
+    const { data: challenge, error: challengeError } = await supabase.auth.mfa.challenge({ factorId });
+    if (challengeError) { setError(challengeError.message); setBusy(false); return; }
+    const { error: verifyError } = await supabase.auth.mfa.verify({
+      factorId, challengeId: challenge.id, code: code.replace(/\\s/g, ''),
+    });
+    if (verifyError) { setError(verifyError.message); setBusy(false); return; }
+    onComplete();
+    setBusy(false);
+  };
+
+  return <main className="auth-screen"><section className="auth-card">
+    <div className="auth-brand"><img src="https://raw.githubusercontent.com/web2table/Web2Table-Billing/main/web2table1.png" alt="Web2Table" /><div><strong>web2table</strong><span>BUSINESS</span></div></div>
+    <div className="auth-eyebrow">REQUIRED ACCOUNT SECURITY</div><h1>Set up two-factor authentication</h1>
+    <p className="auth-intro">Protect your Business Owner account with an authenticator app such as Google Authenticator, Microsoft Authenticator, or 1Password. Scan this QR code, then enter the 6-digit code from your app.</p>
+    {error && <div className="auth-message auth-error" role="alert">{error}</div>}
+    {qrCode ? <div className="mfa-qr-wrap"><img className="mfa-qr" src={qrCode} alt="Authenticator setup QR code" /></div> : <div className="auth-loading">Preparing your secure authenticator setup…</div>}
+    {secret && <div className="mfa-secret"><span>Can't scan? Enter this setup key manually</span><code>{secret}</code></div>}
+    <form onSubmit={enable}><label htmlFor="mfa-enroll-code">6-digit authenticator code</label><input id="mfa-enroll-code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9 ]{6,8}" maxLength={8} required value={code} onChange={e => setCode(e.target.value.replace(/[^0-9 ]/g, ''))} placeholder="000000" /><button className="auth-submit" type="submit" disabled={busy || !factorId}>{busy ? 'Verifying…' : 'Enable two-factor authentication'}</button></form>
+    <div className="auth-footnote"><ShieldCheck size={15} /> MFA is required before accessing financial and business records.</div>
+  </section><div className="auth-copyright">© 2026 Web2Table · Internal use only</div></main>;
+}
+
+function MFAChallengeScreen({ onComplete }: { onComplete: () => void }) {
+  const [code, setCode] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const verify = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!supabase) return;
+    setBusy(true); setError('');
+    const { data: factors, error: listError } = await supabase.auth.mfa.listFactors();
+    if (listError) { setError(listError.message); setBusy(false); return; }
+    const factor = factors.totp.find(f => f.status === 'verified');
+    if (!factor) { setError('No verified authenticator is available. Sign in again to set one up.'); setBusy(false); return; }
+    const { data: challenge, error: challengeError } = await supabase.auth.mfa.challenge({ factorId: factor.id });
+    if (challengeError) { setError(challengeError.message); setBusy(false); return; }
+    const { error: verifyError } = await supabase.auth.mfa.verify({ factorId: factor.id, challengeId: challenge.id, code: code.replace(/\\s/g, '') });
+    if (verifyError) setError(verifyError.message);
+    else onComplete();
+    setBusy(false);
+  };
+  return <main className="auth-screen"><section className="auth-card">
+    <div className="auth-brand"><img src="https://raw.githubusercontent.com/web2table/Web2Table-Billing/main/web2table1.png" alt="Web2Table" /><div><strong>web2table</strong><span>BUSINESS</span></div></div>
+    <div className="auth-eyebrow">SECOND VERIFICATION STEP</div><h1>Verify it's you</h1>
+    <p className="auth-intro">Enter the 6-digit code from your authenticator app to continue to Web2Table Business.</p>
+    {error && <div className="auth-message auth-error" role="alert">{error}</div>}
+    <form onSubmit={verify}><label htmlFor="mfa-login-code">Authenticator code</label><input id="mfa-login-code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9 ]{6,8}" maxLength={8} required value={code} onChange={e => setCode(e.target.value.replace(/[^0-9 ]/g, ''))} placeholder="000000" /><button className="auth-submit" type="submit" disabled={busy}>{busy ? 'Verifying…' : 'Verify and continue'}</button></form>
+    <div className="auth-footnote"><ShieldCheck size={15} /> Your authenticator code changes periodically. Never share it with anyone.</div>
+  </section><div className="auth-copyright">© 2026 Web2Table · Internal use only</div></main>;
 }
 
 export function App() {
