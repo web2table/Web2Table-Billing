@@ -92,3 +92,66 @@ h1,h2,h3,p { margin-top:0; }.page-heading h1 { font:800 27px Manrope;letter-spac
 .auth-copyright{position:absolute;bottom:18px;color:#777;font-size:9px}
 .auth-loading{color:#eee;font-size:12px}
 @media(max-width:480px){.auth-card{padding:27px 22px}.auth-brand{margin-bottom:30px}}
+
+
+/* Dark navy workspace theme, matched to the Web2Table restaurant dashboard */
+:root {
+  --ink:#101b2f;
+  --muted:#64748b;
+  --line:#e2e8f0;
+  --red:#101b2f;
+  --red-dark:#1b2b45;
+}
+.sidebar {
+  background:#101b2f;
+  color:#f8fafc;
+}
+.brand-lockup span { color:#9aa9bf; }
+.workspace-switch {
+  border-color:#293a55;
+  background:#17263d;
+}
+.workspace-avatar,.profile-avatar { background:#263b5a; }
+.workspace-switch span,.profile-row span { color:#9aa9bf; }
+.nav-label { color:#8192ac; }
+.nav-item { color:#c1ccdc; }
+.nav-item:hover { background:#1b2b45;color:#fff; }
+.nav-item.active {
+  background:#263b5a;
+  color:#fff;
+  box-shadow:inset 2px 0 #22c5e8;
+}
+.nav-item.active svg { color:#8bdcf0; }
+.help-card { border-color:#293a55;background:#17263d; }
+.help-icon { color:#8bdcf0; }
+.help-card p { color:#a8b5c8; }
+.help-card a { color:#8bdcf0; }
+.profile-row { border-top-color:#293a55; }
+.profile-row .icon-button { color:#a8b5c8; }
+.topbar {
+  background:#101b2f;
+  border-bottom:1px solid #293a55;
+}
+.breadcrumb { color:#a8b5c8; }
+.breadcrumb span { color:#64748b; }
+.breadcrumb strong { color:#f8fafc; }
+.environment-chip { background:#263b5a;color:#dbeafe; }
+.icon-button { color:#c1ccdc; }
+.icon-button:hover { background:#263b5a;color:#fff; }
+.topbar-divider { background:#33445f; }
+.topbar-user { background:#263b5a; }
+.eyebrow { color:#2563eb; }
+.button-primary {
+  color:#fff;
+  background:#101b2f;
+  border-color:#101b2f;
+}
+.button-primary:hover { background:#1b2b45; }
+.metric-icon,.chart-icon,.activity-icon,.empty-symbol {
+  background:#eaf5fa;
+  color:#17446b;
+}
+.text-action { color:#17446b; }
+@media(max-width:760px) {
+  .topbar { background:#101b2f; }
+}
