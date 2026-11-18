@@ -9,11 +9,36 @@ The standalone internal business management platform for Web2Table.
 
 Operate the Web2Table business independently from restaurant operations and technical platform administration. The application provides internal visibility and controlled workflows for subscription revenue, collections, tenant accounts, financial reporting, and company expenses.
 
+## Technology
+
+The initial application foundation follows the existing Web2Table frontend stack:
+
+- React 19
+- TypeScript
+- Vite
+- Supabase JS 2.58
+- Lucide icons
+
+## Run locally
+
+```bash
+npm install
+cp .env.example .env.local
+npm run dev
+```
+
+Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in `.env.local` when connecting to the existing Web2Table Supabase project. The app shell can render without these values, but live data and authentication are not connected.
+
+Run checks:
+
+```bash
+npm run typecheck
+npm run build
+```
+
 ## Architecture
 
-This repository starts with an architecture blueprint. The GitHub repository was empty when initialized, so no application framework or runtime has been assumed.
-
-The system is designed as a **modular monolith**: one deployable application with explicit business modules, clear ownership, and controlled interfaces. Modules can be extracted later if scale or operational needs justify it.
+This is a **modular monolith**: one deployable application with explicit business modules, clear ownership, and controlled interfaces. Modules can be extracted later if scale or operational needs justify it.
 
 See:
 - [Architecture](docs/architecture/README.md)
@@ -21,6 +46,7 @@ See:
 - [Data boundaries](docs/architecture/data-boundaries.md)
 - [Security](docs/architecture/security.md)
 - [Implementation roadmap](docs/architecture/roadmap.md)
+- [Implementation status](docs/architecture/implementation-status.md)
 
 ## Core principles
 
@@ -35,8 +61,8 @@ See:
 
 ## Current status
 
-Architecture foundation only. No production code, schema migrations, PayMongo calls, or deployment configuration have been added yet.
+The application shell and navigation are implemented. Authentication authorization, database integration, payment workflows, financial persistence, tests, and production deployment are not yet complete.
 
-## Before implementation
+## Before production
 
-Confirm the existing Web2Table Supabase schema, tenant/branch identifiers, authentication model, PayMongo account arrangement, and current subscription/payment flows. Do not create duplicate sources of truth.
+Confirm the existing Web2Table Supabase schema, tenant/branch identifiers, authentication model, PayMongo account arrangement, and current subscription/payment flows. Do not create duplicate sources of truth. Do not expose the application publicly until internal authorization and data policies are enforced.
