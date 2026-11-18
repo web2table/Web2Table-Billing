@@ -712,20 +712,24 @@ function ExpensesWorkspace() {
       {visible.map(row=><tr key={row.id}><td>{formatManilaDate(row.expense_date+'T00:00:00+08:00')}</td><td><strong>{row.description}</strong>{row.notes&&<small className="subscription-slug">{row.notes}</small>}</td><td>{row.category}</td><td>{paymentMethodLabel(row.payment_method)}</td><td>{row.reference||'—'}</td><td><strong>{formatPHP(Number(row.amount_php))}</strong></td><td><div className="expense-row-actions"><button className="button-secondary subscription-edit-button" onClick={()=>open(row)}>Edit</button><button className="button-secondary subscription-edit-button expense-delete" onClick={()=>void remove(row)}>Delete</button></div></td></tr>)}
       </tbody></table></div>}
     </section>
-    {showForm&&<form className="subscription-assignment-form expense-form" onSubmit={save}>
-      <div className="panel-heading"><div><h2>{editing?'Edit expense':'Add an expense'}</h2><p>Enter an amount actually paid or incurred by Web2Table.</p></div><button type="button" className="button-secondary" onClick={()=>setShowForm(false)}>Close</button></div>
-      <div className="subscription-form-grid">
-        <label>Category<select required value={category} onChange={e=>setCategory(e.target.value)}>{EXPENSE_CATEGORIES.map(x=><option key={x}>{x}</option>)}{!EXPENSE_CATEGORIES.includes(category)&&<option>{category}</option>}</select></label>
-        <label>Expense date<input type="date" required value={date} onChange={e=>setDate(e.target.value)}/></label>
-        <label className="subscription-notes-field">Description<input required value={description} onChange={e=>setDescription(e.target.value)} placeholder="e.g. Monthly hosting subscription"/></label>
-        <label>Amount (PHP)<input type="number" min="0.01" step="0.01" required value={amount} onChange={e=>setAmount(e.target.value)} placeholder="0.00"/></label>
-        <label>Payment method<select value={method} onChange={e=>setMethod(e.target.value)}><option value="bank_transfer">Bank transfer</option><option value="gcash">GCash</option><option value="maya">Maya</option><option value="cash">Cash</option><option value="card">Card</option><option value="other">Other</option></select></label>
-        <label>Reference number <span className="subscription-optional">Optional</span><input value={reference} onChange={e=>setReference(e.target.value)} placeholder="Transaction or receipt reference"/></label>
-        <label className="subscription-notes-field">Notes <span className="subscription-optional">Optional</span><textarea rows={2} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Additional details"/></label>
-      </div>
-      {message&&<div className="pricing-message pricing-error">{message}</div>}
-      <div className="subscription-form-footer"><span>Records are private to authorized Web2Table Business Owners.</span><button className="button-primary" type="submit" disabled={saving}>{saving?'Saving…':editing?'Save changes':'Save expense'}</button></div>
-    </form>}
+    {showForm&&<div className="business-modal-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)setShowForm(false);}}>
+      <form className="business-modal expense-modal" role="dialog" aria-modal="true" aria-labelledby="expense-modal-title" onSubmit={save}>
+       <div className="business-modal-header"><div><span className="business-modal-kicker">{editing?'UPDATE RECORD':'WEB2TABLE BUSINESS'}</span><h2 id="expense-modal-title">{editing?'Edit expense':'Add an expense'}</h2><p>Record an operating cost for Web2Table.</p></div><button type="button" className="business-modal-close" aria-label="Close dialog" onClick={()=>setShowForm(false)}>×</button></div>
+       <div className="business-modal-body">
+        <div className="subscription-form-grid">
+          <label>Category<select required value={category} onChange={e=>setCategory(e.target.value)}>{EXPENSE_CATEGORIES.map(x=><option key={x}>{x}</option>)}{!EXPENSE_CATEGORIES.includes(category)&&<option>{category}</option>}</select></label>
+          <label>Expense date<input type="date" required value={date} onChange={e=>setDate(e.target.value)}/></label>
+          <label className="subscription-notes-field">Description<input required value={description} onChange={e=>setDescription(e.target.value)} placeholder="e.g. Monthly hosting subscription"/></label>
+          <label>Amount (PHP)<input type="number" min="0.01" step="0.01" required value={amount} onChange={e=>setAmount(e.target.value)} placeholder="0.00"/></label>
+          <label>Payment method<select value={method} onChange={e=>setMethod(e.target.value)}><option value="bank_transfer">Bank transfer</option><option value="gcash">GCash</option><option value="maya">Maya</option><option value="cash">Cash</option><option value="card">Card</option><option value="other">Other</option></select></label>
+          <label>Reference number <span className="subscription-optional">Optional</span><input value={reference} onChange={e=>setReference(e.target.value)} placeholder="Transaction or receipt reference"/></label>
+          <label className="subscription-notes-field">Notes <span className="subscription-optional">Optional</span><textarea rows={2} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Additional details"/></label>
+        </div>
+        {message&&<div className="pricing-message pricing-error">{message}</div>}
+       </div>
+       <div className="business-modal-footer"><span>Only authorized Business Owners can access these records.</span><div><button type="button" className="button-secondary" onClick={()=>setShowForm(false)}>Cancel</button><button className="button-primary" type="submit" disabled={saving}>{saving?'Saving…':editing?'Save changes':'Save expense'}</button></div></div>
+      </form>
+    </div>}
   </div>;
 }
 
