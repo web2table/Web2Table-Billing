@@ -55,7 +55,7 @@ function LoginScreen({ denied = false }: { denied?: boolean }) {
   return (
     <main className="auth-screen">
       <section className="auth-card">
-        <div className="auth-brand"><img src="https://raw.githubusercontent.com/web2table/Web2Table-Billing/main/web2table1.png" alt="Web2Table" /><div><strong>web2table</strong><span>BUSINESS</span></div></div>
+        <div className="auth-brand"><img src="https://raw.githubusercontent.com/web2table/Web2Table-Billing/main/web2table1.png" alt="Web2Table" /><div><strong>Web2Table</strong><span>BUSINESS</span></div></div>
         <div className="auth-eyebrow">PRIVATE WORKSPACE</div>
         <h1>Welcome back</h1>
         <p className="auth-intro">Sign in with your authorized Web2Table Business account.</p>
@@ -130,7 +130,7 @@ function MFASetupScreen({ onComplete }: { onComplete: () => void }) {
   };
 
   return <main className="auth-screen"><section className="auth-card">
-    <div className="auth-brand"><img src="https://raw.githubusercontent.com/web2table/Web2Table-Billing/main/web2table1.png" alt="Web2Table" /><div><strong>web2table</strong><span>BUSINESS</span></div></div>
+    <div className="auth-brand"><img src="https://raw.githubusercontent.com/web2table/Web2Table-Billing/main/web2table1.png" alt="Web2Table" /><div><strong>Web2Table</strong><span>BUSINESS</span></div></div>
     <div className="auth-eyebrow">REQUIRED ACCOUNT SECURITY</div><h1>Set up two-factor authentication</h1>
     <p className="auth-intro">Protect your Business Owner account with an authenticator app such as Google Authenticator, Microsoft Authenticator, or 1Password. Scan this QR code, then enter the 6-digit code from your app.</p>
     {error && <div className="auth-message auth-error" role="alert">{error}</div>}
@@ -171,7 +171,7 @@ function MFAChallengeScreen({ onComplete }: { onComplete: () => void }) {
     setBusy(false);
   };
   return <main className="auth-screen"><section className="auth-card">
-    <div className="auth-brand"><img src="https://raw.githubusercontent.com/web2table/Web2Table-Billing/main/web2table1.png" alt="Web2Table" /><div><strong>web2table</strong><span>BUSINESS</span></div></div>
+    <div className="auth-brand"><img src="https://raw.githubusercontent.com/web2table/Web2Table-Billing/main/web2table1.png" alt="Web2Table" /><div><strong>Web2Table</strong><span>BUSINESS</span></div></div>
     <div className="auth-eyebrow">SECOND VERIFICATION STEP</div><h1>Verify it's you</h1>
     <p className="auth-intro">Enter the 6-digit code from your authenticator app to continue to Web2Table Business.</p>
     {error && <div className="auth-message auth-error" role="alert">{error}</div>}
@@ -687,7 +687,7 @@ function BusinessWorkspace({ onSignOut, email }: { onSignOut: () => void; email:
       <aside className={`sidebar ${mobileOpen ? 'sidebar-open' : ''}`}>
         <div className="brand-lockup">
           <div className="brand-mark"><img src="https://raw.githubusercontent.com/web2table/Web2Table-Billing/main/web2table1.png" alt="Web2Table logo" /></div>
-          <div><strong>web2table</strong><span>BUSINESS</span></div>
+          <div><strong>Web2Table</strong><span>BUSINESS</span></div>
           <button className="icon-button mobile-close" onClick={() => setMobileOpen(false)} aria-label="Close menu"><X size={18} /></button>
         </div>
         
