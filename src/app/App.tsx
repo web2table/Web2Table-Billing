@@ -717,11 +717,6 @@ function BusinessWorkspace({ onSignOut, email }: { onSignOut: () => void; email:
         </header>
 
         <div className="page-content">
-          <div className="page-heading">
-            <div><div className="eyebrow">WEB2TABLE BUSINESS</div><h1>{meta.title}</h1><p>{meta.description}</p></div>
-            <div className="heading-actions"><button className="button-secondary"><Download size={15} /> Export</button><button className="button-primary" onClick={() => chooseSection('subscriptions')}><Plus size={16} /> View subscriptions</button></div>
-          </div>
-
           {!isSupabaseConfigured && <div className="connection-banner"><div className="connection-icon"><Command size={17} /></div><div><strong>Data connection not configured</strong><span>Add the public Supabase URL and publishable key to the deployment environment. No live financial figures are being shown.</span></div></div>}
 
           {active === 'settings' ? <PricingSettings /> : active === 'subscriptions' ? <SubscriptionsWorkspace /> : active === 'payments' ? <PaymentsWorkspace /> : active === 'overview' ? (
