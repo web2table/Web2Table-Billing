@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import {
   ArrowDownRight, ArrowUpRight, Bell, ChevronDown, CircleHelp, Command,
   CreditCard, Download, ExternalLink, Menu, Plus, Search, ShieldCheck,
-  TrendingUp, Wallet, X,
+  TrendingUp, Wallet, X, SlidersHorizontal,
 } from 'lucide-react';
 import { navigation, sectionMeta, type BusinessSection } from './navigation';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
@@ -859,7 +859,7 @@ function EmptyModule({ section }: { section: BusinessSection }) {
 }
 
 type GlobalSearchResult={result_type:string;result_id:string;title:string;subtitle:string;target_section:BusinessSection};
-type BusinessNotification={notification_key:string;kind:string;title:string;body:string;created_at:string;target_section:BusinessSection};
+type BusinessNotification={notification_key:string;kind:string;title:string;body:string;created_at:string;target_section:BusinessSection;is_read:boolean};
 function BusinessWorkspace({ onSignOut, email }: { onSignOut: () => void; email: string }) {
   const [active, setActive] = useState<BusinessSection>('overview');
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -872,6 +872,9 @@ function BusinessWorkspace({ onSignOut, email }: { onSignOut: () => void; email:
   const [notifications,setNotifications]=useState<BusinessNotification[]>([]);
   const [notificationsBusy,setNotificationsBusy]=useState(false);
   const [notificationsError,setNotificationsError]=useState('');
+  const [notificationPreferencesOpen,setNotificationPreferencesOpen]=useState(false);
+  const [notificationPreferences,setNotificationPreferences]=useState({subscriptions_enabled:true,payments_enabled:true,activity_enabled:true});
+  const [preferencesBusy,setPreferencesBusy]=useState(false);
   const [profileOpen,setProfileOpen]=useState(false);
   const meta = sectionMeta[active];
 
@@ -897,10 +900,34 @@ function BusinessWorkspace({ onSignOut, email }: { onSignOut: () => void; email:
     if(error)setNotificationsError(error.message);else setNotifications((data??[]) as BusinessNotification[]);
     setNotificationsBusy(false);
   };
+  const loadNotificationPreferences=async()=>{
+    if(!supabase)return;
+    const {data,error}=await supabase.rpc('business_get_notification_preferences');
+    if(!error&&data?.[0])setNotificationPreferences(data[0]);
+  };
+  const markNotificationRead=async(key:string)=>{
+    if(!supabase)return;
+    const {error}=await supabase.rpc('business_mark_notification_read',{p_notification_key:key});
+    if(error){setNotificationsError(error.message);return;}
+    setNotifications(current=>current.map(item=>item.notification_key===key?{...item,is_read:true}:item));
+  };
+  const saveNotificationPreferences=async()=>{
+    if(!supabase)return;
+    setPreferencesBusy(true);setNotificationsError('');
+    const {error}=await supabase.rpc('business_update_notification_preferences',{
+      p_subscriptions_enabled:notificationPreferences.subscriptions_enabled,
+      p_payments_enabled:notificationPreferences.payments_enabled,
+      p_activity_enabled:notificationPreferences.activity_enabled
+    });
+    if(error)setNotificationsError(error.message);
+    else {setNotificationPreferencesOpen(false);await loadNotifications();}
+    setPreferencesBusy(false);
+  };
+  const unreadNotificationCount=notifications.filter(item=>!item.is_read).length;
   const openNotifications=()=>{
     const next=!notificationsOpen;
-    setNotificationsOpen(next);setSearchOpen(false);setProfileOpen(false);
-    if(next)void loadNotifications();
+    setNotificationsOpen(next);setSearchOpen(false);setProfileOpen(false);setNotificationPreferencesOpen(false);
+    if(next){void loadNotifications();void loadNotificationPreferences();}
   };
   const openSearch=()=>{setSearchOpen(true);setNotificationsOpen(false);setProfileOpen(false);};
   const goToResult=(section:BusinessSection)=>{chooseSection(section);setSearchOpen(false);setSearchQuery('');setSearchResults([]);};
@@ -945,9 +972,10 @@ function BusinessWorkspace({ onSignOut, email }: { onSignOut: () => void; email:
                 {searchQuery.trim().length<2?<div className="popover-hint">Type at least 2 characters to search.</div>:searchBusy?<div className="popover-hint">Searching…</div>:searchError?<div className="popover-hint popover-error">{searchError}</div>:searchResults.length===0?<div className="popover-hint">No matching records found.</div>:<div className="popover-results">{searchResults.map(result=><button key={result.result_type+result.result_id} type="button" className="popover-result" onClick={()=>goToResult(result.target_section)}><span className="popover-result-icon">{result.result_type==='tenant'?'T':result.result_type==='subscription'?'S':'₱'}</span><span><strong>{result.title}</strong><small>{result.subtitle}</small></span><small className="popover-result-type">{result.result_type}</small></button>)}</div>}
               </div>}
             </div>
-            <div className="topbar-action-wrap"><button className={notificationsOpen?'icon-button notification-button is-open':'icon-button notification-button'} aria-label="Notifications" title="Notifications" aria-expanded={notificationsOpen} onClick={openNotifications}><Bell size={18}/>{notifications.length>0&&<span className="notification-count">{notifications.length>9?'9+':notifications.length}</span>}</button>
-              {notificationsOpen&&<div className="header-popover notifications-popover"><div className="popover-heading"><div><strong>Notifications</strong><small>Business alerts and recent activity</small></div><button type="button" onClick={()=>void loadNotifications()} aria-label="Refresh notifications"><ArrowDownRight size={15}/></button></div>
-                {notificationsBusy?<div className="popover-hint">Loading notifications…</div>:notificationsError?<div className="popover-hint popover-error">{notificationsError}</div>:notifications.length===0?<div className="popover-empty"><Bell size={22}/><strong>You're all caught up</strong><span>Upcoming renewals, overdue subscriptions and important activity will appear here.</span></div>:<div className="popover-notification-list">{notifications.map(n=><button type="button" key={n.notification_key} className="popover-notification" onClick={()=>{goToResult(n.target_section);setNotificationsOpen(false);}}><span className={`notification-kind notification-kind-${n.kind}`}>{n.kind==='warning'?'!':n.kind==='reminder'?'◷':'•'}</span><span><strong>{n.title}</strong><small>{n.body}</small><time>{new Intl.DateTimeFormat('en-PH',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Manila'}).format(new Date(n.created_at))}</time></span></button>)}</div>}
+            <div className="topbar-action-wrap"><button className={notificationsOpen?'icon-button notification-button is-open':'icon-button notification-button'} aria-label="Notifications" title="Notifications" aria-expanded={notificationsOpen} onClick={openNotifications}><Bell size={18}/>{unreadNotificationCount>0&&<span className="notification-count">{unreadNotificationCount>9?'9+':unreadNotificationCount}</span>}</button>
+              {notificationsOpen&&<div className="header-popover notifications-popover"><div className="popover-heading"><div><strong>Notifications</strong><small>{unreadNotificationCount} unread · Business alerts and activity</small></div><div className="notification-heading-actions"><button type="button" onClick={()=>setNotificationPreferencesOpen(v=>!v)} aria-label="Notification preferences" title="Notification preferences"><SlidersHorizontal size={15}/></button><button type="button" onClick={()=>void loadNotifications()} aria-label="Refresh notifications" title="Refresh"><ArrowDownRight size={15}/></button></div></div>
+                {notificationPreferencesOpen&&<div className="notification-preferences"><strong>Notification preferences</strong><label><input type="checkbox" checked={notificationPreferences.subscriptions_enabled} onChange={e=>setNotificationPreferences(v=>({...v,subscriptions_enabled:e.target.checked}))}/> Subscription renewals and overdue alerts</label><label><input type="checkbox" checked={notificationPreferences.payments_enabled} onChange={e=>setNotificationPreferences(v=>({...v,payments_enabled:e.target.checked}))}/> Failed payment collections</label><label><input type="checkbox" checked={notificationPreferences.activity_enabled} onChange={e=>setNotificationPreferences(v=>({...v,activity_enabled:e.target.checked}))}/> Recent business activity</label><button type="button" className="button-primary" disabled={preferencesBusy} onClick={()=>void saveNotificationPreferences()}>{preferencesBusy?'Saving…':'Save preferences'}</button></div>}
+                {notificationsBusy?<div className="popover-hint">Loading notifications…</div>:notificationsError?<div className="popover-hint popover-error">{notificationsError}</div>:notifications.length===0?<div className="popover-empty"><Bell size={22}/><strong>You're all caught up</strong><span>Upcoming renewals, overdue subscriptions and important activity will appear here.</span></div>:<div className="popover-notification-list">{notifications.map(n=><button type="button" key={n.notification_key} className={n.is_read?'popover-notification is-read':'popover-notification is-unread'} onClick={()=>{void markNotificationRead(n.notification_key);goToResult(n.target_section);setNotificationsOpen(false);}}><span className={`notification-kind notification-kind-${n.kind}`}>{n.kind==='warning'?'!':n.kind==='reminder'?'◷':'•'}</span><span><strong>{n.title}</strong><small>{n.body}</small><time>{new Intl.DateTimeFormat('en-PH',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Manila'}).format(new Date(n.created_at))}</time></span>{!n.is_read&&<i className="notification-unread-dot"/>}</button>)}</div>}
               </div>}
             </div>
             <div className="topbar-divider" />
