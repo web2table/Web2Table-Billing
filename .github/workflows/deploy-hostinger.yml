@@ -54,6 +54,9 @@ jobs:
             set ftp:passive-mode true
             pwd
             cls -la
+            cd public_html
+            pwd
+            cls -la
             mirror --reverse --verbose --parallel=1 --ignore-time ./dist/ ./
             bye
           "
