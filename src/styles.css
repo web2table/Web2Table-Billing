@@ -342,3 +342,7 @@ h1,h2,h3,p { margin-top:0; }.page-heading h1 { font:800 27px Manrope;letter-spac
  .report-range button { width:100%; }
  .report-bars>div { grid-template-columns:55px minmax(35px,1fr) 88px; gap:6px; }
 }
+
+/* Compact page controls after removing repeated section headings */
+.module-toolbar-compact { justify-content:flex-end; }
+.section-title-row-compact { justify-content:flex-end; min-height:0; margin-bottom:12px; }
