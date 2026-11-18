@@ -659,6 +659,97 @@ function PaymentsWorkspace() {
   </div>;
 }
 
+type BusinessExpense = { id:string; category:string; description:string; amount_php:number; expense_date:string; payment_method:string; reference:string|null; notes:string; created_at:string };
+const EXPENSE_CATEGORIES = ['Software & services','Hosting & infrastructure','Marketing & advertising','Office & supplies','Transportation','Professional fees','Bank & payment fees','Taxes & permits','Equipment','Other'];
+function ExpensesWorkspace() {
+  const [rows,setRows]=useState<BusinessExpense[]>([]);
+  const [busy,setBusy]=useState(true);
+  const [error,setError]=useState('');
+  const [saving,setSaving]=useState(false);
+  const [editing,setEditing]=useState<BusinessExpense|null>(null);
+  const [showForm,setShowForm]=useState(false);
+  const [category,setCategory]=useState(EXPENSE_CATEGORIES[0]);
+  const [description,setDescription]=useState('');
+  const [amount,setAmount]=useState('');
+  const [date,setDate]=useState(todayInManila());
+  const [method,setMethod]=useState('bank_transfer');
+  const [reference,setReference]=useState('');
+  const [notes,setNotes]=useState('');
+  const [filter,setFilter]=useState('all');
+  const [message,setMessage]=useState('');
+  const load=async()=>{if(!supabase)return;setBusy(true);setError('');const {data,error:e}=await supabase.rpc('business_list_expenses',{p_from:null,p_to:null});if(e)setError(e.message);else setRows((data??[]) as BusinessExpense[]);setBusy(false);};
+  useEffect(()=>{void load();},[]);
+  const reset=()=>{setEditing(null);setCategory(EXPENSE_CATEGORIES[0]);setDescription('');setAmount('');setDate(todayInManila());setMethod('bank_transfer');setReference('');setNotes('');setMessage('');};
+  const open=(row?:BusinessExpense)=>{reset();if(row){setEditing(row);setCategory(row.category);setDescription(row.description);setAmount(String(row.amount_php));setDate(row.expense_date);setMethod(row.payment_method);setReference(row.reference??'');setNotes(row.notes);}setShowForm(true);};
+  const save=async(e:FormEvent<HTMLFormElement>)=>{e.preventDefault();if(!supabase)return;setSaving(true);setMessage('');const {error:e2}=await supabase.rpc('business_save_expense',{p_id:editing?.id??null,p_category:category,p_description:description,p_amount:Number(amount),p_expense_date:date,p_payment_method:method,p_reference:reference,p_notes:notes});setSaving(false);if(e2){setMessage(e2.message);return;}setShowForm(false);reset();await load();};
+  const remove=async(row:BusinessExpense)=>{if(!supabase||!window.confirm('Delete this expense record? This cannot be undone.'))return;const {error:e}=await supabase.rpc('business_delete_expense',{p_id:row.id});if(e)setError(e.message);else await load();};
+  const visible=rows.filter(r=>filter==='all'||r.category===filter);
+  const total=rows.reduce((s,r)=>s+Number(r.amount_php),0);
+  return <div className="business-module">
+    <div className="module-toolbar"><div><h2>Expense records</h2><p>Track Web2Table operating costs. These are internal business expenses, not tenant charges.</p></div><div className="module-toolbar-actions"><button className="button-secondary" onClick={()=>void load()} disabled={busy}>Refresh</button><button className="button-primary" onClick={()=>open()}><Plus size={15}/> Add expense</button></div></div>
+    <div className="subscription-summary-grid expense-summary-grid">
+      <article className="subscription-summary-card"><span>Recorded expenses</span><strong>{busy?'—':rows.length}</strong><small>All recorded entries</small></article>
+      <article className="subscription-summary-card"><span>Total expenses</span><strong>{busy?'—':formatPHP(total)}</strong><small>Across all recorded dates</small></article>
+      <article className="subscription-summary-card"><span>This month</span><strong>{busy?'—':formatPHP(rows.filter(r=>r.expense_date.slice(0,7)===todayInManila().slice(0,7)).reduce((s,r)=>s+Number(r.amount_php),0))}</strong><small>Based on expense date</small></article>
+      <article className="subscription-summary-card"><span>Categories</span><strong>{busy?'—':new Set(rows.map(r=>r.category)).size}</strong><small>Used in expense records</small></article>
+    </div>
+    {error&&<div className="pricing-message pricing-error">{error}</div>}
+    <section className="panel subscription-list-panel">
+      <div className="panel-heading payment-panel-heading"><div><h2>All expenses</h2><p>Use Edit to correct an entry. Keep references for audit purposes.</p></div><select className="expense-filter" value={filter} onChange={e=>setFilter(e.target.value)}><option value="all">All categories</option>{[...new Set(rows.map(r=>r.category))].map(x=><option key={x} value={x}>{x}</option>)}</select></div>
+      {busy&&rows.length===0?<div className="pricing-loading">Loading expenses…</div>:visible.length===0?<div className="pricing-loading">{rows.length===0?'No expenses recorded yet. Add your first operating expense.':'No expenses in this category.'}</div>:
+      <div className="pricing-table-wrap"><table className="pricing-table expense-table"><thead><tr><th>Date</th><th>Expense</th><th>Category</th><th>Method</th><th>Reference</th><th>Amount</th><th>Actions</th></tr></thead><tbody>
+      {visible.map(row=><tr key={row.id}><td>{formatManilaDate(row.expense_date+'T00:00:00+08:00')}</td><td><strong>{row.description}</strong>{row.notes&&<small className="subscription-slug">{row.notes}</small>}</td><td>{row.category}</td><td>{paymentMethodLabel(row.payment_method)}</td><td>{row.reference||'—'}</td><td><strong>{formatPHP(Number(row.amount_php))}</strong></td><td><div className="expense-row-actions"><button className="button-secondary subscription-edit-button" onClick={()=>open(row)}>Edit</button><button className="button-secondary subscription-edit-button expense-delete" onClick={()=>void remove(row)}>Delete</button></div></td></tr>)}
+      </tbody></table></div>}
+    </section>
+    {showForm&&<form className="subscription-assignment-form expense-form" onSubmit={save}>
+      <div className="panel-heading"><div><h2>{editing?'Edit expense':'Add an expense'}</h2><p>Enter an amount actually paid or incurred by Web2Table.</p></div><button type="button" className="button-secondary" onClick={()=>setShowForm(false)}>Close</button></div>
+      <div className="subscription-form-grid">
+        <label>Category<select required value={category} onChange={e=>setCategory(e.target.value)}>{EXPENSE_CATEGORIES.map(x=><option key={x}>{x}</option>)}{!EXPENSE_CATEGORIES.includes(category)&&<option>{category}</option>}</select></label>
+        <label>Expense date<input type="date" required value={date} onChange={e=>setDate(e.target.value)}/></label>
+        <label className="subscription-notes-field">Description<input required value={description} onChange={e=>setDescription(e.target.value)} placeholder="e.g. Monthly hosting subscription"/></label>
+        <label>Amount (PHP)<input type="number" min="0.01" step="0.01" required value={amount} onChange={e=>setAmount(e.target.value)} placeholder="0.00"/></label>
+        <label>Payment method<select value={method} onChange={e=>setMethod(e.target.value)}><option value="bank_transfer">Bank transfer</option><option value="gcash">GCash</option><option value="maya">Maya</option><option value="cash">Cash</option><option value="card">Card</option><option value="other">Other</option></select></label>
+        <label>Reference number <span className="subscription-optional">Optional</span><input value={reference} onChange={e=>setReference(e.target.value)} placeholder="Transaction or receipt reference"/></label>
+        <label className="subscription-notes-field">Notes <span className="subscription-optional">Optional</span><textarea rows={2} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Additional details"/></label>
+      </div>
+      {message&&<div className="pricing-message pricing-error">{message}</div>}
+      <div className="subscription-form-footer"><span>Records are private to authorized Web2Table Business Owners.</span><button className="button-primary" type="submit" disabled={saving}>{saving?'Saving…':editing?'Save changes':'Save expense'}</button></div>
+    </form>}
+  </div>;
+}
+
+type FinancialReportData={revenue:number;expenses:number;expense_count:number;paid_charge_count:number;monthly:{month:string;revenue:number;expenses:number;net:number}[];by_category:{category:string;total:number}[]};
+function FinancialReportsWorkspace(){
+ const today=todayInManila();const [from,setFrom]=useState(today.slice(0,4)+'-01-01');const [to,setTo]=useState(today);
+ const [data,setData]=useState<FinancialReportData|null>(null);const [busy,setBusy]=useState(false);const [error,setError]=useState('');
+ const load=async()=>{if(!supabase)return;if(!from||!to||from>to){setError('Choose a valid date range.');return;}setBusy(true);setError('');const {data:result,error:e}=await supabase.rpc('business_financial_report',{p_from:from,p_to:to});if(e)setError(e.message);else setData(result as FinancialReportData);setBusy(false);};
+ useEffect(()=>{void load();},[]);
+ const net=(data?.revenue??0)-(data?.expenses??0);
+ const money=(n:number)=>formatPHP(Number(n??0));
+ const monthLabel=(v:string)=>new Date(v+'T00:00:00Z').toLocaleDateString('en-PH',{month:'short',year:'numeric',timeZone:'UTC'});
+ const max=Math.max(1,...(data?.monthly??[]).flatMap(m=>[Number(m.revenue),Number(m.expenses)]));
+ return <div className="business-module">
+  <div className="module-toolbar"><div><h2>Financial overview</h2><p>Subscription collections and recorded operating expenses. Revenue includes confirmed paid charges only.</p></div><div className="report-range"><label>From<input type="date" value={from} onChange={e=>setFrom(e.target.value)}/></label><label>To<input type="date" value={to} onChange={e=>setTo(e.target.value)}/></label><button className="button-primary" onClick={()=>void load()} disabled={busy}>{busy?'Updating…':'Run report'}</button></div></div>
+  {error&&<div className="pricing-message pricing-error">{error}</div>}
+  {!data&&busy?<div className="pricing-loading">Preparing financial report…</div>:data&&<>
+   <div className="subscription-summary-grid report-summary-grid">
+    <article className="subscription-summary-card"><span>Collected revenue</span><strong>{money(data.revenue)}</strong><small>{data.paid_charge_count} confirmed subscription payments</small></article>
+    <article className="subscription-summary-card"><span>Operating expenses</span><strong>{money(data.expenses)}</strong><small>{data.expense_count} expense records</small></article>
+    <article className="subscription-summary-card"><span>Net operating result</span><strong className={net>=0?'report-positive':'report-negative'}>{money(net)}</strong><small>Collected revenue minus recorded expenses</small></article>
+   </div>
+   <div className="report-content-grid">
+    <section className="panel"><div className="panel-heading"><div><h2>Monthly performance</h2><p>Revenue versus expenses by month</p></div></div>
+     {(data.monthly??[]).length===0?<div className="pricing-loading">No activity in this period.</div>:<div className="monthly-report-list">{data.monthly.map(m=><div className="monthly-report-row" key={m.month}><div className="monthly-report-head"><strong>{monthLabel(m.month)}</strong><span>Net {money(Number(m.net))}</span></div><div className="report-bars"><div><small>Revenue</small><i><span className="report-revenue-bar" style={{width:(Number(m.revenue)/max*100)+'%'}}/></i><b>{money(Number(m.revenue))}</b></div><div><small>Expenses</small><i><span className="report-expense-bar" style={{width:(Number(m.expenses)/max*100)+'%'}}/></i><b>{money(Number(m.expenses))}</b></div></div></div>)}</div>}
+    </section>
+    <section className="panel"><div className="panel-heading"><div><h2>Expenses by category</h2><p>Where operating costs are going</p></div></div>
+     {(data.by_category??[]).length===0?<div className="pricing-loading">No expenses recorded for this period.</div>:<div className="category-report-list">{data.by_category.map(item=><div key={item.category}><span>{item.category}</span><strong>{money(Number(item.total))}</strong></div>)}</div>}
+    </section>
+   </div>
+   <p className="report-footnote">This is an internal management report, not a BIR invoice, official financial statement, or tax filing. It excludes unpaid subscription charges and any revenue not recorded in Web2Table Business.</p>
+  </>}
+ </div>;
+}
+
 function EmptyModule({ section }: { section: BusinessSection }) {
   const meta = sectionMeta[section];
   return (
@@ -719,7 +810,7 @@ function BusinessWorkspace({ onSignOut, email }: { onSignOut: () => void; email:
         <div className="page-content">
           {!isSupabaseConfigured && <div className="connection-banner"><div className="connection-icon"><Command size={17} /></div><div><strong>Data connection not configured</strong><span>Add the public Supabase URL and publishable key to the deployment environment. No live financial figures are being shown.</span></div></div>}
 
-          {active === 'settings' ? <PricingSettings /> : active === 'subscriptions' ? <SubscriptionsWorkspace /> : active === 'payments' ? <PaymentsWorkspace /> : active === 'overview' ? (
+          {active === 'settings' ? <PricingSettings /> : active === 'subscriptions' ? <SubscriptionsWorkspace /> : active === 'payments' ? <PaymentsWorkspace /> : active === 'expenses' ? <ExpensesWorkspace /> : active === 'reports' ? <FinancialReportsWorkspace /> : active === 'overview' ? (
             <>
               <div className="section-title-row"><div><h2>Performance snapshot</h2><p>Live figures will appear after the trusted data integration is connected.</p></div><button className="period-button">All time <ChevronDown size={14} /></button></div>
               <div className="metrics-grid">
