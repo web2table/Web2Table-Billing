@@ -19,9 +19,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Upgrade npm to fix dependency resolver bug
+        run: npm install --global npm@11.21.2
       - name: Install dependencies
-        run: |
-          npm cache clean --force
-          npm install --no-audit --no-fund
+        run: npm install --no-audit --no-fund
       - name: Type-check and build
         run: npm run build
