@@ -24,10 +24,10 @@ jobs:
         with:
           node-version: 22
 
+      - name: Upgrade npm to fix dependency resolver bug
+        run: npm install --global npm@11.21.2
       - name: Install dependencies
-        run: |
-          npm cache clean --force
-          npm install --no-audit --no-fund
+        run: npm install --no-audit --no-fund
 
       - name: Build production frontend
         run: npm run build
