@@ -24,22 +24,23 @@ jobs:
         with:
           node-version: 22
 
-      - name: Upgrade npm to fix dependency resolver bug
+      - name: Upgrade npm
         run: npm install --global npm@11.21.2
+
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
       - name: Build production frontend
         run: npm run build
 
-      - name: Deploy dist to Hostinger
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+      - name: Deploy dist to Hostinger over SSH
+        uses: appleboy/scp-action@v1
         with:
-          server: ${{ secrets.HOSTINGER_FTP_SERVER }}
-          username: ${{ secrets.HOSTINGER_FTP_USERNAME }}
-          password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
-          protocol: ftps
-          port: 21
-          server-dir: ${{ secrets.HOSTINGER_FTP_SERVER_DIR }}
-          local-dir: ./dist/
-          dangerous-clean-slate: false
+          host: ${{ secrets.HOSTINGER_SSH_HOST }}
+          username: ${{ secrets.HOSTINGER_SSH_USERNAME }}
+          password: ${{ secrets.HOSTINGER_SSH_PASSWORD }}
+          port: ${{ secrets.HOSTINGER_SSH_PORT }}
+          source: "dist/*"
+          target: "public_html/"
+          strip_components: 1
+          overwrite: true
