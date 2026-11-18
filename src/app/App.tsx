@@ -46,11 +46,11 @@ export function App() {
       {mobileOpen && <button className="mobile-scrim" aria-label="Close navigation" onClick={() => setMobileOpen(false)} />}
       <aside className={`sidebar ${mobileOpen ? 'sidebar-open' : ''}`}>
         <div className="brand-lockup">
-          <div className="brand-mark">W</div>
+          <div className="brand-mark"><img src="https://raw.githubusercontent.com/web2table/Web2Table-Billing/main/web2table1.png" alt="Web2Table logo" /></div>
           <div><strong>web2table</strong><span>BUSINESS</span></div>
           <button className="icon-button mobile-close" onClick={() => setMobileOpen(false)} aria-label="Close menu"><X size={18} /></button>
         </div>
-        <div className="workspace-switch"><div className="workspace-avatar">W</div><div><strong>Web2Table Inc.</strong><span>Business workspace</span></div><ChevronDown size={15} /></div>
+        <div className="workspace-switch"><div className="workspace-avatar"><img src="https://raw.githubusercontent.com/web2table/Web2Table-Billing/main/web2table1.png" alt="" /></div><div><strong>Web2Table Inc.</strong><span>Business workspace</span></div><ChevronDown size={15} /></div>
         <nav className="side-nav" aria-label="Business navigation">
           {(['Workspace', 'Finance', 'Administration'] as const).map(group => (
             <div className="nav-group" key={group}>
@@ -67,14 +67,14 @@ export function App() {
         </nav>
         <div className="sidebar-bottom">
           <div className="help-card"><div className="help-icon"><CircleHelp size={17} /></div><strong>Need a hand?</strong><p>Business workspace guide and support.</p><a href="mailto:support@web2table.io">Contact support <ExternalLink size={12} /></a></div>
-          <div className="profile-row"><div className="profile-avatar">W</div><div><strong>Business Owner</strong><span>Internal account</span></div><button className="icon-button" aria-label="Profile menu"><ChevronDown size={16} /></button></div>
+          <div className="profile-row"><div className="profile-avatar"><img src="https://raw.githubusercontent.com/web2table/Web2Table-Billing/main/web2table1.png" alt="" /></div><div><strong>Business Owner</strong><span>Internal account</span></div><button className="icon-button" aria-label="Profile menu"><ChevronDown size={16} /></button></div>
         </div>
       </aside>
 
       <main className="main-area">
         <header className="topbar">
           <div className="topbar-left"><button className="icon-button mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Open menu"><Menu size={20} /></button><div className="breadcrumb">Web2Table <span>/</span> <strong>{meta.title}</strong></div></div>
-          <div className="topbar-actions"><div className="environment-chip"><span /> Internal workspace</div><button className="icon-button" aria-label="Search"><Search size={18} /></button><button className="icon-button notification-button" aria-label="Notifications"><Bell size={18} /></button><div className="topbar-divider" /><div className="topbar-user">W</div></div>
+          <div className="topbar-actions"><div className="environment-chip"><span /> Internal workspace</div><button className="icon-button" aria-label="Search"><Search size={18} /></button><button className="icon-button notification-button" aria-label="Notifications"><Bell size={18} /></button><div className="topbar-divider" /><div className="topbar-user"><img src="https://raw.githubusercontent.com/web2table/Web2Table-Billing/main/web2table1.png" alt="Web2Table" /></div></div>
         </header>
 
         <div className="page-content">
