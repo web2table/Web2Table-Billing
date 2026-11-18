@@ -104,7 +104,7 @@ export function App() {
         return;
       }
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-        void supabase!.auth.getUser().then(({ data, error }) => {
+        queueMicrotask(() => { void supabase!.auth.getUser().then(({ data, error }) => {
           if (!alive) return;
           if (!error && data.user && hasBusinessOwnerAccess(data.user)) {
             setEmail(data.user.email ?? 'Business Owner'); setStatus('authorized');
@@ -112,7 +112,7 @@ export function App() {
             void supabase!.auth.signOut();
             setEmail(''); setStatus('denied');
           }
-        });
+        }); });
       }
     });
     return () => { alive = false; subscription.unsubscribe(); };
