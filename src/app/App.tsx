@@ -262,7 +262,7 @@ function BusinessWorkspace({ onSignOut, email }: { onSignOut: () => void; email:
           <div><strong>web2table</strong><span>BUSINESS</span></div>
           <button className="icon-button mobile-close" onClick={() => setMobileOpen(false)} aria-label="Close menu"><X size={18} /></button>
         </div>
-        <div className="workspace-switch"><div className="workspace-avatar"><img src="https://raw.githubusercontent.com/web2table/Web2Table-Billing/main/web2table1.png" alt="" /></div><div><strong>Web2Table Inc.</strong><span>Business workspace</span></div><ChevronDown size={15} /></div>
+        
         <nav className="side-nav" aria-label="Business navigation">
           {(['Workspace', 'Finance', 'Administration'] as const).map(group => (
             <div className="nav-group" key={group}>
