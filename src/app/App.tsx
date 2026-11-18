@@ -934,9 +934,6 @@ function BusinessWorkspace({ onSignOut, email }: { onSignOut: () => void; email:
             </div>
           ))}
         </nav>
-        <div className="sidebar-bottom">
-          <div className="profile-row"><div className="profile-avatar"><img src="https://raw.githubusercontent.com/web2table/Web2Table-Billing/main/web2table1.png" alt="" /></div><div><strong>{email}</strong><span>Business Owner</span></div><button className="icon-button" onClick={onSignOut} aria-label="Sign out" title="Sign out"><ChevronDown size={16} /></button></div>
-        </div>
       </aside>
 
       <main className="main-area">
