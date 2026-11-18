@@ -173,3 +173,10 @@ h1,h2,h3,p { margin-top:0; }.page-heading h1 { font:800 27px Manrope;letter-spac
 @media(max-width:760px) {
   .topbar { background:#ffffff; }
 }
+
+/* Mandatory TOTP MFA enrollment and verification */
+.mfa-qr-wrap{display:flex;justify-content:center;align-items:center;padding:14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;margin:0 0 15px}
+.mfa-qr{display:block;width:190px;height:190px;object-fit:contain}
+.mfa-secret{display:flex;flex-direction:column;gap:7px;padding:11px 12px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;margin-bottom:17px}
+.mfa-secret span{font-size:9px;color:#64748b;font-weight:650}
+.mfa-secret code{font-size:12px;letter-spacing:1.2px;word-break:break-all;color:#101b2f}
