@@ -800,3 +800,31 @@ button,input,select,textarea { max-width:100%; }
   .metrics-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .overview-grid,.bottom-grid { grid-template-columns:minmax(0,1fr); }
 }
+
+
+/* Financial report: compact, purposeful empty states and data-first layout */
+.report-summary-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.report-summary-grid .subscription-summary-card { min-height:112px; padding:17px 19px; }
+.report-summary-grid .subscription-summary-card strong { font-size:25px; line-height:1.2; }
+.report-content-grid { grid-template-columns:minmax(0,1.55fr) minmax(260px,1fr); gap:14px; align-items:start; }
+.report-panel { min-width:0; }
+.report-empty-state { min-height:190px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:9px; padding:24px; text-align:center; }
+.report-empty-icon { display:grid; place-items:center; width:42px; height:42px; border:1px solid #4a2024; border-radius:12px; background:#1b0d0f; color:#f21d2b; }
+.report-empty-state strong { color:#fff; font-size:13px; font-weight:700; }
+.report-empty-state p { max-width:340px; margin:0; color:#999; font-size:11px; line-height:1.6; }
+.monthly-report-list { max-height:460px; overflow:auto; }
+.monthly-report-row { padding:12px 14px; gap:8px; }
+.monthly-report-head strong { color:#fff; }
+.monthly-report-head span { color:#ddd; }
+.report-bars>div { grid-template-columns:62px minmax(30px,1fr) 90px; gap:8px; }
+.report-bars b { color:#ddd; font-size:10px; text-align:right; }
+.category-report-list>div { padding:12px 14px; }
+@media(max-width:900px) {
+ .report-content-grid { grid-template-columns:minmax(0,1fr); }
+}
+@media(max-width:620px) {
+ .report-summary-grid { grid-template-columns:1fr; }
+ .report-summary-grid .subscription-summary-card { min-height:0; }
+ .report-empty-state { min-height:150px; }
+ .report-bars>div { grid-template-columns:56px minmax(25px,1fr) 78px; gap:6px; }
+}
