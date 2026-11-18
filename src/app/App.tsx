@@ -500,51 +500,52 @@ function SubscriptionsWorkspace() {
             <td><button className="button-secondary subscription-edit-button" type="button" onClick={() => beginAssignment(row)}>{row.subscription_id ? 'Manage' : 'Assign'}</button></td>
           </tr>)}
         </tbody></table></div>}
-      {editingTenant && <form className="subscription-assignment-form" onSubmit={saveAssignment}>
-        <div className="panel-heading"><div><h2>{editingTenant.subscription_id ? 'Manage subscription' : 'Assign a plan'}</h2><p>{editingTenant.tenant_name} · Choose a plan and start date. We'll calculate the billing schedule.</p></div><button className="button-secondary" type="button" onClick={() => setEditingTenant(null)}>Close</button></div>
-        <div className="subscription-form-grid subscription-form-grid-simple">
-          <label>Subscription plan
-            <select required value={planId} onChange={e => setPlanId(e.target.value)}>
-              <option value="">Choose a plan</option>
-              {plans.map(plan => <option key={plan.id} value={plan.id}>{plan.name} · {plan.billing_interval === 'year' ? 'Yearly' : 'Monthly'}</option>)}
-            </select>
-          </label>
-          <label>Subscription status
-            <select value={subStatus} onChange={e => setSubStatus(e.target.value)}>
-              <option value="pending">Pending — not started yet</option>
-              <option value="active">Active — service is running</option>
-              <option value="trialing">Free trial</option>
-              <option value="past_due">Past due — payment overdue</option>
-              <option value="suspended">Suspended — service paused</option>
-              <option value="cancelled">Cancelled — subscription ended</option>
-            </select>
-          </label>
-          <label>Start date
-            <input required type="date" value={startedAt} onChange={e => setStartedAt(e.target.value)} />
-            <small>Choose the agreed date the subscription begins.</small>
-          </label>
-          <div className="subscription-schedule-preview">
-            <div className="subscription-preview-heading"><strong>Billing schedule</strong><span>Calculated automatically</span></div>
-            {(() => {
-              const selectedPlan = plans.find(plan => plan.id === planId);
-              const preview = subscriptionDatePreview(startedAt, selectedPlan?.billing_interval ?? 'month');
-              if (!preview) return <p>Select a start date to preview the billing schedule.</p>;
-              return <div className="subscription-preview-grid">
-                <div><small>First billing period</small><strong>{preview.start} – {preview.end}</strong></div>
-                <div><small>Next renewal date</small><strong>{preview.next}</strong></div>
-              </div>;
-            })()}
+      {editingTenant && <div className="business-modal-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget&&!saving)setEditingTenant(null);}}>
+        <form className="business-modal subscription-modal" role="dialog" aria-modal="true" aria-labelledby="subscription-modal-title" onSubmit={saveAssignment}>
+          <div className="business-modal-header"><div><span className="business-modal-kicker">WEB2TABLE BUSINESS</span><h2 id="subscription-modal-title">{editingTenant.subscription_id ? 'Manage subscription' : 'Assign a plan'}</h2><p>{editingTenant.tenant_name} · Choose a plan and start date. We'll calculate the billing schedule.</p></div><button className="business-modal-close" type="button" aria-label="Close dialog" disabled={saving} onClick={() => setEditingTenant(null)}>×</button></div>
+          <div className="business-modal-body">
+            <div className="subscription-form-grid subscription-form-grid-simple">
+              <label>Subscription plan
+                <select required value={planId} onChange={e => setPlanId(e.target.value)}>
+                  <option value="">Choose a plan</option>
+                  {plans.map(plan => <option key={plan.id} value={plan.id}>{plan.name} · {plan.billing_interval === 'year' ? 'Yearly' : 'Monthly'}</option>)}
+                </select>
+              </label>
+              <label>Subscription status
+                <select value={subStatus} onChange={e => setSubStatus(e.target.value)}>
+                  <option value="pending">Pending — not started yet</option>
+                  <option value="active">Active — service is running</option>
+                  <option value="trialing">Free trial</option>
+                  <option value="past_due">Past due — payment overdue</option>
+                  <option value="suspended">Suspended — service paused</option>
+                  <option value="cancelled">Cancelled — subscription ended</option>
+                </select>
+              </label>
+              <label>Start date
+                <input required type="date" value={startedAt} onChange={e => setStartedAt(e.target.value)} />
+                <small>Choose the agreed date the subscription begins.</small>
+              </label>
+              <div className="subscription-schedule-preview">
+                <div className="subscription-preview-heading"><strong>Billing schedule</strong><span>Calculated automatically</span></div>
+                {(() => {
+                  const selectedPlan = plans.find(plan => plan.id === planId);
+                  const preview = subscriptionDatePreview(startedAt, selectedPlan?.billing_interval ?? 'month');
+                  if (!preview) return <p>Select a start date to preview the billing schedule.</p>;
+                  return <div className="subscription-preview-grid">
+                    <div><small>First billing period</small><strong>{preview.start} – {preview.end}</strong></div>
+                    <div><small>Next renewal date</small><strong>{preview.next}</strong></div>
+                  </div>;
+                })()}
+              </div>
+              <label className="subscription-notes-field">Internal notes <span className="subscription-optional">Optional</span>
+                <textarea rows={2} value={notes} onChange={e => setNotes(e.target.value)} placeholder="e.g. Subscription agreed with the restaurant owner" />
+              </label>
+            </div>
+            {saveMessage && <div className="pricing-message pricing-error" role="alert">{saveMessage}</div>}
           </div>
-          <label className="subscription-notes-field">Internal notes <span className="subscription-optional">Optional</span>
-            <textarea rows={2} value={notes} onChange={e => setNotes(e.target.value)} placeholder="e.g. Subscription agreed with the restaurant owner" />
-          </label>
-        </div>
-        <div className="subscription-form-footer">
-          <span>Dates renew automatically. A subscription charge record is created for active subscriptions. No card is charged automatically.</span>
-          <button className="button-primary" type="submit" disabled={saving || !planId || !startedAt}>{saving ? 'Saving…' : 'Save subscription'}</button>
-        </div>
-        {saveMessage && <div className="pricing-message pricing-error" role="alert">{saveMessage}</div>}
-      </form>}
+          <div className="business-modal-footer"><span>Dates renew automatically. A subscription charge record is created for active subscriptions. No card is charged automatically.</span><div><button className="button-secondary" type="button" disabled={saving} onClick={() => setEditingTenant(null)}>Cancel</button><button className="button-primary" type="submit" disabled={saving || !planId || !startedAt}>{saving ? 'Saving…' : 'Save subscription'}</button></div></div>
+        </form>
+      </div>}
       {refreshedAt && <div className="subscription-refresh-note">Last refreshed {refreshedAt.toLocaleTimeString('en-PH', { timeZone: 'Asia/Manila' })} · Asia/Manila</div>}
     </section>
   </div>;
