@@ -54,6 +54,9 @@ jobs:
             set ftp:passive-mode true
             pwd
             cls -la
-            mirror --reverse --verbose --parallel=1 --ignore-time ./dist/ ./
+            # Always replace the HTML entry point so it references the exact JS/CSS bundle uploaded by this build.
+            put ./dist/index.html -o index.html
+            put ./dist/.htaccess -o .htaccess
+            mirror --reverse --verbose --parallel=1 --ignore-time ./dist/assets/ ./assets/
             bye
           "
