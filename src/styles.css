@@ -418,3 +418,78 @@ body { color:#111; background:#f7f7f7; }
 .nav-item.active { background:#292929 !important; box-shadow:inset 3px 0 #e31b23 !important; }
 @media(max-width:900px){.report-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr)) !important;}}
 @media(max-width:560px){.report-summary-grid{grid-template-columns:1fr !important;}.report-content-grid{grid-template-columns:1fr;}}
+
+
+/* Web2Table Business — deep-black theme matched to the platform login */
+:root {
+  color-scheme:dark;
+  --ink:#f5f5f5;
+  --muted:#a5a5a5;
+  --line:#292929;
+  --red:#ed1c24;
+  --red-dark:#c9151d;
+  background:#050505;
+}
+html,body,#root,.app-shell,.main-area { background:#050505; color:#f5f5f5; }
+.sidebar { background:#090909 !important; border-right:1px solid #292929; }
+.topbar { background:#090909 !important; border-bottom:1px solid #292929 !important; }
+.page-content { color:#f5f5f5; }
+.breadcrumb,.breadcrumb span { color:#969696; }
+.breadcrumb strong { color:#f5f5f5 !important; }
+.topbar-divider { background:#333; }
+.topbar .icon-button { color:#c7c7c7; }
+.topbar .icon-button:hover { background:#202020; color:#fff; }
+.environment-chip,.status-pill { background:#1d1d1d !important; color:#ccc !important; }
+.brand-lockup strong,.profile-row strong { color:#fff; }
+.brand-lockup span,.profile-row span { color:#aaa; }
+.nav-label { color:#858585 !important; }
+.nav-item { color:#c8c8c8 !important; }
+.nav-item.active { background:#241315 !important; color:#fff !important; box-shadow:inset 3px 0 #ed1c24 !important; }
+.nav-item.active svg { color:#ff4349 !important; }
+.nav-dot { background:#ed1c24; }
+.page-heading h1,.page-heading h2,.section-title-row h2,
+.panel-heading h2,.module-toolbar h2,.module-empty h3,
+.metric-value,.subscription-summary-card strong,
+.subscription-table td:first-child strong,.monthly-report-head strong,
+.activity-log-title strong,.chart-empty strong,.activity-empty strong,
+.connection-banner strong { color:#fff !important; }
+.page-heading p,.section-title-row p,.panel-heading p,.module-toolbar p,
+.subscription-summary-card span,.subscription-summary-card small,
+.metric-top,.metric-note,.module-empty p,.report-footnote,
+.chart-empty span,.activity-empty span,.list-empty,.page-footer { color:#a3a3a3 !important; }
+.panel,.metric-card,.subscription-summary-card,.subscription-list-panel,
+.module-panel { background:#101010 !important; border:1px solid #303030 !important; box-shadow:none !important; }
+.connection-banner { background:#181818 !important; border-color:#343434 !important; }
+.connection-banner span { color:#aaa !important; }
+.connection-icon,.metric-icon,.chart-icon,.activity-icon,.empty-symbol,
+.activity-log-symbol { color:#ff4149 !important; background:#291316 !important; }
+.button-primary,.main-area .button-primary,.auth-submit { background:#ed1c24 !important; border-color:#ed1c24 !important; color:#fff !important; }
+.button-primary:hover,.main-area .button-primary:hover,.auth-submit:hover { background:#c9151d !important; border-color:#c9151d !important; }
+.button-secondary,.period-button,.expense-filter,
+.report-range input,.report-range select,
+.main-area input,.main-area select,.main-area textarea {
+  background:#191919 !important;
+  border:1px solid #383838 !important;
+  color:#f5f5f5 !important;
+}
+.main-area input::placeholder,.main-area textarea::placeholder { color:#929292; }
+.main-area input:focus,.main-area select:focus,.main-area textarea:focus { outline-color:#ed1c24; border-color:#ed1c24 !important; }
+.button-secondary:hover,.period-button:hover { background:#262626 !important; border-color:#555 !important; }
+.report-bars i { background:#292929 !important; }
+.report-revenue-bar { background:#ed1c24 !important; }
+.report-expense-bar { background:#898989 !important; }
+.report-bars b,.monthly-report-head span,.category-report-list strong,
+.category-report-list span,.report-positive { color:#f5f5f5 !important; }
+.report-negative { color:#ff4b53 !important; }
+.monthly-report-row,.category-report-list>div,.activity-log-row,.list-empty,
+.subscription-table th,.subscription-table td { border-color:#2c2c2c !important; }
+.activity-log-action,.activity-log-details span { background:#222 !important; color:#ddd !important; border-color:#383838 !important; }
+.activity-log-meta,.report-bars small { color:#aaa !important; }
+.chart-grid i { border-color:#303030; }
+.pricing-tag,.subscription-state { background:#252525; color:#ddd; }
+table { color:#eaeaea; }
+thead,th { color:#aaa !important; background:#191919 !important; }
+td { color:#ddd; }
+a,.text-action,.eyebrow { color:#ff4149; }
+hr { border-color:#303030; }
+@media(hover:none){.nav-item:hover{background:transparent;color:#c8c8c8}.nav-item.active:hover{background:#241315;color:#fff}}
