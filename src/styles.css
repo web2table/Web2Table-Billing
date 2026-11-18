@@ -346,3 +346,17 @@ h1,h2,h3,p { margin-top:0; }.page-heading h1 { font:800 27px Manrope;letter-spac
 /* Compact page controls after removing repeated section headings */
 .module-toolbar-compact { justify-content:flex-end; }
 .section-title-row-compact { justify-content:flex-end; min-height:0; margin-bottom:12px; }
+
+
+/* Business audit activity */
+.activity-log-list { display:grid; }
+.activity-log-row { display:flex; gap:13px; padding:16px 18px; border-top:1px solid #edf0f4; }
+.activity-log-symbol { flex:0 0 32px; width:32px; height:32px; display:grid; place-items:center; border-radius:9px; color:#287d9b; background:#edf7fa; }
+.activity-log-main { min-width:0; flex:1; display:grid; gap:7px; }
+.activity-log-title { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.activity-log-title strong { color:#24354c; font-size:12px; font-weight:650; }
+.activity-log-action { color:#65768c; background:#f1f4f8; border-radius:999px; padding:4px 8px; font-size:9px; font-weight:650; }
+.activity-log-meta { display:flex; flex-wrap:wrap; gap:7px 14px; color:#8491a2; font-size:10px; }
+.activity-log-details { display:flex; flex-wrap:wrap; gap:7px; }
+.activity-log-details span { color:#63758b; background:#f7f9fb; border:1px solid #edf0f4; border-radius:6px; padding:4px 7px; font-size:10px; }
+@media(max-width:600px){.activity-log-title{align-items:flex-start;flex-direction:column;gap:6px}.activity-log-row{padding:13px 12px}.activity-log-meta{flex-direction:column;gap:4px}}
