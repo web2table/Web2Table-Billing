@@ -39,7 +39,7 @@ jobs:
       - name: Install lftp
         run: sudo apt-get update && sudo apt-get install -y lftp
 
-      - name: Deploy to Hostinger root over plain FTP with retries
+      - name: Deploy assets first and publish entry point last
         env:
           FTP_SERVER: ${{ secrets.HOSTINGER_FTP_SERVER }}
           FTP_USERNAME: ${{ secrets.HOSTINGER_FTP_USERNAME }}
@@ -52,11 +52,10 @@ jobs:
             set net:reconnect-interval-base 5
             set net:timeout 30
             set ftp:passive-mode true
-            pwd
-            cls -la
-            # Always replace the HTML entry point so it references the exact JS/CSS bundle uploaded by this build.
-            put ./dist/index.html -o index.html
+            mkdir -p assets
+            mirror --reverse --delete --verbose --parallel=1 ./dist/assets/ ./assets/
             put ./dist/.htaccess -o .htaccess
-            mirror --reverse --verbose --parallel=1 --ignore-time ./dist/assets/ ./assets/
+            # Publish the HTML last so it never points at bundles that have not uploaded yet.
+            put ./dist/index.html -o index.html
             bye
           "
