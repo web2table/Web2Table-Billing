@@ -787,6 +787,60 @@ function ActivityLogWorkspace(){
  </div>;
 }
 
+type TenantDirectoryBranch={id:string;name:string;slug:string;is_active:boolean;accepting_orders:boolean;store_address:string|null;contact_phone:string|null};
+type TenantDirectoryRow={tenant_id:string;tenant_name:string;tenant_slug:string;tenant_status:string;tenant_created_at:string;branch_count:number;branches:TenantDirectoryBranch[]};
+function TenantsWorkspace(){
+ const [rows,setRows]=useState<TenantDirectoryRow[]>([]);
+ const [busy,setBusy]=useState(true);
+ const [error,setError]=useState('');
+ const [search,setSearch]=useState('');
+ const [statusFilter,setStatusFilter]=useState('all');
+ const [expanded,setExpanded]=useState<string|null>(null);
+ const load=async()=>{
+  if(!supabase)return;
+  setBusy(true);setError('');
+  const {data,error:e}=await supabase.rpc('business_list_tenant_directory');
+  if(e)setError(e.message);else setRows((data??[]) as TenantDirectoryRow[]);
+  setBusy(false);
+ };
+ useEffect(()=>{void load();},[]);
+ const filtered=rows.filter(row=>{
+  const q=search.trim().toLowerCase();
+  const matches=!q||row.tenant_name.toLowerCase().includes(q)||row.tenant_slug.toLowerCase().includes(q)||row.branches.some(b=>b.name.toLowerCase().includes(q));
+  return matches&&(statusFilter==='all'||row.tenant_status.toLowerCase()===statusFilter);
+ });
+ const dateLabel=(value:string)=>new Intl.DateTimeFormat('en-PH',{dateStyle:'medium',timeZone:'Asia/Manila'}).format(new Date(value));
+ const activeCount=rows.filter(row=>row.tenant_status.toLowerCase()==='active').length;
+ const branchTotal=rows.reduce((sum,row)=>sum+Number(row.branch_count||0),0);
+ return <div className="business-module tenant-workspace">
+  <div className="tenant-toolbar"><div className="tenant-stats"><div className="tenant-stat"><span>Total tenants</span><strong>{rows.length}</strong></div><div className="tenant-stat"><span>Active tenants</span><strong>{activeCount}</strong></div><div className="tenant-stat"><span>Total branches</span><strong>{branchTotal}</strong></div></div>
+   <div className="tenant-actions"><div className="tenant-search"><Search size={15}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search tenants or branches" aria-label="Search tenants or branches"/></div><select className="expense-filter" value={statusFilter} onChange={e=>setStatusFilter(e.target.value)} aria-label="Filter tenant status"><option value="all">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option><option value="suspended">Suspended</option></select><button className="button-secondary" onClick={()=>void load()} disabled={busy}>Refresh</button></div>
+  </div>
+  {error&&<div className="pricing-message pricing-error" role="alert">{error}</div>}
+  <section className="panel tenant-directory-panel">
+   <div className="panel-heading"><div><h2>Restaurant tenants</h2><p>Tenant accounts and their registered branches</p></div><span className="pricing-tag">{filtered.length} of {rows.length}</span></div>
+   {busy&&rows.length===0?<div className="pricing-loading">Loading tenant directory…</div>:filtered.length===0?<div className="pricing-loading">{rows.length===0?'No tenants found.':'No tenants match your search.'}</div>:
+    <div className="tenant-list">{filtered.map(row=><article className="tenant-record" key={row.tenant_id}>
+     <button className="tenant-record-main" onClick={()=>setExpanded(expanded===row.tenant_id?null:row.tenant_id)} aria-expanded={expanded===row.tenant_id}>
+      <span className="tenant-identity"><strong>{row.tenant_name}</strong><small>{row.tenant_slug}</small></span>
+      <span className={`tenant-status tenant-status-${row.tenant_status.toLowerCase()}`}>{row.tenant_status}</span>
+      <span className="tenant-branch-count">{row.branch_count} {Number(row.branch_count)===1?'branch':'branches'}</span>
+      <span className="tenant-created">Joined {dateLabel(row.tenant_created_at)}</span>
+      <ChevronDown className={expanded===row.tenant_id?'tenant-chevron is-open':'tenant-chevron'} size={17}/>
+     </button>
+     {expanded===row.tenant_id&&<div className="tenant-branch-panel"><div className="tenant-branch-heading">Registered branches</div>
+      {row.branches.length===0?<p className="tenant-no-branches">No branches registered.</p>:row.branches.map(branch=><div className="tenant-branch-row" key={branch.id}>
+       <div className="tenant-branch-name"><strong>{branch.name}</strong><small>{branch.slug}</small>{branch.store_address&&<small>{branch.store_address}</small>}</div>
+       <div className="tenant-branch-flags"><span className={branch.is_active?'tenant-flag is-active':'tenant-flag'}>{branch.is_active?'Branch active':'Branch inactive'}</span><span className={branch.accepting_orders?'tenant-flag is-active':'tenant-flag'}>{branch.accepting_orders?'Accepting orders':'Not accepting orders'}</span></div>
+       {branch.contact_phone&&<span className="tenant-branch-phone">{branch.contact_phone}</span>}
+      </div>)}
+     </div>}
+    </article>)}</div>}
+   <p className="tenant-footnote">Read-only directory · Tenant and branch settings remain managed in the restaurant platform.</p>
+  </section>
+ </div>;
+}
+
 function EmptyModule({ section }: { section: BusinessSection }) {
   const meta = sectionMeta[section];
   return (
@@ -847,7 +901,7 @@ function BusinessWorkspace({ onSignOut, email }: { onSignOut: () => void; email:
         <div className="page-content">
           {!isSupabaseConfigured && <div className="connection-banner"><div className="connection-icon"><Command size={17} /></div><div><strong>Data connection not configured</strong><span>Add the public Supabase URL and publishable key to the deployment environment. No live financial figures are being shown.</span></div></div>}
 
-          {active === 'settings' ? <PricingSettings /> : active === 'subscriptions' ? <SubscriptionsWorkspace /> : active === 'payments' ? <PaymentsWorkspace /> : active === 'expenses' ? <ExpensesWorkspace /> : active === 'reports' ? <FinancialReportsWorkspace /> : active === 'audit' ? <ActivityLogWorkspace /> : active === 'overview' ? (
+          {active === 'settings' ? <PricingSettings /> : active === 'tenants' ? <TenantsWorkspace /> : active === 'subscriptions' ? <SubscriptionsWorkspace /> : active === 'payments' ? <PaymentsWorkspace /> : active === 'expenses' ? <ExpensesWorkspace /> : active === 'reports' ? <FinancialReportsWorkspace /> : active === 'audit' ? <ActivityLogWorkspace /> : active === 'overview' ? (
             <>
               <div className="section-title-row section-title-row-compact"><button className="period-button">All time <ChevronDown size={14} /></button></div>
               <div className="metrics-grid">
