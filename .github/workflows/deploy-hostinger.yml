@@ -43,13 +43,12 @@ jobs:
           FTP_PASSWORD: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
         run: |
           set -euo pipefail
-          lftp -e "
+          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "ftp://$FTP_SERVER" -e "
             set ftp:ssl-allow no
             set net:max-retries 3
             set net:reconnect-interval-base 5
             set net:timeout 30
             set ftp:passive-mode true
-            open -u \"$FTP_USERNAME\",\"$FTP_PASSWORD\" \"ftp://$FTP_SERVER\"
             pwd
             cls -la
             mirror --reverse --verbose --parallel=1 --only-newer ./dist/ ./
