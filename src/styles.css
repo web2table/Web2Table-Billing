@@ -240,3 +240,28 @@ h1,h2,h3,p { margin-top:0; }.page-heading h1 { font:800 27px Manrope;letter-spac
 .subscription-notes-field { grid-column: 1 / -1; }
 .subscription-form-footer { display: flex; align-items: center; justify-content: space-between; gap: 14px; color: #7b8798; font-size: 11px; }
 @media (max-width: 600px) { .subscription-form-grid { grid-template-columns: 1fr; } .subscription-notes-field { grid-column: auto; } .subscription-form-footer { align-items: stretch; flex-direction: column; } .subscription-form-footer button { width: 100%; } }
+
+
+/* Clear, guided subscription assignment */
+.subscription-form-grid-simple { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+.subscription-form-grid-simple label small { color: #8290a3; font-size: 11px; font-weight: 400; }
+.subscription-form-grid-simple .subscription-notes-field { grid-column: 1 / -1; }
+.subscription-optional { color: #94a0af; font-size: 10px; font-weight: 400; }
+.subscription-schedule-preview { grid-column: 1 / -1; border: 1px solid #dbe8f1; background: #f7fbfe; border-radius: 11px; padding: 15px 16px; display: grid; gap: 13px; }
+.subscription-preview-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.subscription-preview-heading strong { color: #20334b; font-size: 12px; }
+.subscription-preview-heading span { color: #28734e; background: #e8f6ef; border-radius: 999px; padding: 4px 9px; font-size: 10px; font-weight: 650; }
+.subscription-preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.subscription-preview-grid div { display: grid; gap: 5px; }
+.subscription-preview-grid small { color: #75859a; font-size: 10px; }
+.subscription-preview-grid strong { color: #17243a; font-size: 13px; }
+.subscription-schedule-preview p { color: #75859a; font-size: 11px; margin: 0; }
+.subscription-form-footer { align-items: center; }
+.subscription-form-footer span { max-width: 65%; line-height: 1.5; }
+@media (max-width: 600px) {
+  .subscription-form-grid-simple { grid-template-columns: 1fr; }
+  .subscription-form-grid-simple .subscription-notes-field, .subscription-schedule-preview { grid-column: auto; }
+  .subscription-preview-grid { grid-template-columns: 1fr; }
+  .subscription-preview-heading { align-items: flex-start; flex-direction: column; }
+  .subscription-form-footer span { max-width: none; }
+}
