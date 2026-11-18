@@ -1,11 +1,134 @@
-import { useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import {
   ArrowDownRight, ArrowUpRight, Bell, ChevronDown, CircleHelp, Command,
   CreditCard, Download, ExternalLink, Menu, Plus, Search, ShieldCheck,
   TrendingUp, Wallet, X,
 } from 'lucide-react';
 import { navigation, sectionMeta, type BusinessSection } from './navigation';
-import { isSupabaseConfigured } from '../lib/supabase';
+import { isSupabaseConfigured, supabase } from '../lib/supabase';
+
+type AuthStatus = 'loading' | 'signed-out' | 'authorized' | 'denied' | 'unconfigured';
+
+function hasBusinessOwnerAccess(user: { app_metadata?: Record<string, unknown> }) {
+  return user.app_metadata?.business_access === true &&
+    user.app_metadata?.business_role === 'owner';
+}
+
+function LoginScreen({ denied = false }: { denied?: boolean }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(denied ? 'This account is not authorized to access Web2Table Business.' : '');
+  const [notice, setNotice] = useState('');
+
+  const signIn = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!supabase) return;
+    setBusy(true); setError(''); setNotice('');
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    if (signInError || !data.user) {
+      setError(signInError?.message ?? 'Unable to sign in. Please try again.');
+      setBusy(false); return;
+    }
+    const { data: verified, error: verifyError } = await supabase.auth.getUser();
+    if (verifyError || !verified.user || !hasBusinessOwnerAccess(verified.user)) {
+      await supabase.auth.signOut();
+      setError('Access denied. This account has not been granted Web2Table Business Owner access.');
+    }
+    setBusy(false);
+  };
+
+  const resetPassword = async () => {
+    if (!supabase || !email.trim()) {
+      setError('Enter your account email first, then choose Forgot password.');
+      return;
+    }
+    setBusy(true); setError(''); setNotice('');
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: window.location.origin,
+    });
+    if (resetError) setError(resetError.message);
+    else setNotice('If this email belongs to an account, a password reset link has been sent.');
+    setBusy(false);
+  };
+
+  return (
+    <main className="auth-screen">
+      <section className="auth-card">
+        <div className="auth-brand"><img src="https://raw.githubusercontent.com/web2table/Web2Table-Billing/main/web2table1.png" alt="Web2Table" /><div><strong>web2table</strong><span>BUSINESS</span></div></div>
+        <div className="auth-eyebrow">PRIVATE WORKSPACE</div>
+        <h1>Welcome back</h1>
+        <p className="auth-intro">Sign in with your authorized Web2Table Business account.</p>
+        {error && <div className="auth-message auth-error" role="alert">{error}</div>}
+        {notice && <div className="auth-message auth-success" role="status">{notice}</div>}
+        <form onSubmit={signIn}>
+          <label htmlFor="business-email">Work email</label>
+          <input id="business-email" type="email" autoComplete="username" required value={email} onChange={e => setEmail(e.target.value)} placeholder="you@web2table.io" />
+          <label htmlFor="business-password">Password</label>
+          <input id="business-password" type="password" autoComplete="current-password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter your password" />
+          <button className="auth-submit" type="submit" disabled={busy}>{busy ? 'Signing in…' : 'Sign in securely'}</button>
+        </form>
+        <button className="auth-forgot" type="button" disabled={busy} onClick={resetPassword}>Forgot password?</button>
+        <div className="auth-footnote"><ShieldCheck size={15} /> Access is restricted to explicitly authorized Business Owners.</div>
+      </section>
+      <div className="auth-copyright">© 2026 Web2Table · Internal use only</div>
+    </main>
+  );
+}
+
+export function App() {
+  const [status, setStatus] = useState<AuthStatus>(isSupabaseConfigured ? 'loading' : 'unconfigured');
+  const [email, setEmail] = useState('');
+
+  useEffect(() => {
+    if (!supabase) return;
+    let alive = true;
+    const verifySession = async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!alive) return;
+      if (!sessionData.session) { setStatus('signed-out'); setEmail(''); return; }
+      const { data, error } = await supabase.auth.getUser();
+      if (!alive) return;
+      if (!error && data.user && hasBusinessOwnerAccess(data.user)) {
+        setEmail(data.user.email ?? 'Business Owner');
+        setStatus('authorized');
+      } else {
+        await supabase.auth.signOut();
+        if (alive) { setEmail(''); setStatus('denied'); }
+      }
+    };
+    void verifySession();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        if (alive) { setEmail(''); setStatus('signed-out'); }
+        return;
+      }
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+        void supabase!.auth.getUser().then(({ data, error }) => {
+          if (!alive) return;
+          if (!error && data.user && hasBusinessOwnerAccess(data.user)) {
+            setEmail(data.user.email ?? 'Business Owner'); setStatus('authorized');
+          } else {
+            void supabase!.auth.signOut();
+            setEmail(''); setStatus('denied');
+          }
+        });
+      }
+    });
+    return () => { alive = false; subscription.unsubscribe(); };
+  }, []);
+
+  const signOut = async () => {
+    if (!supabase) return;
+    await supabase.auth.signOut();
+    setEmail(''); setStatus('signed-out');
+  };
+
+  if (status === 'loading') return <main className="auth-screen"><div className="auth-loading">Checking secure session…</div></main>;
+  if (status === 'unconfigured') return <main className="auth-screen"><section className="auth-card"><h1>Business login unavailable</h1><p className="auth-intro">The Supabase URL and publishable key are not configured for this deployment.</p></section></main>;
+  if (status !== 'authorized') return <LoginScreen key={status} denied={status === 'denied'} />;
+  return <BusinessWorkspace onSignOut={signOut} email={email} />;
+}
 
 function MetricCard({ label, value, note, icon: Icon }: {
   label: string; value: string; note: string; icon: typeof Wallet;
@@ -31,7 +154,7 @@ function EmptyModule({ section }: { section: BusinessSection }) {
   );
 }
 
-export function App() {
+function BusinessWorkspace({ onSignOut, email }: { onSignOut: () => void; email: string }) {
   const [active, setActive] = useState<BusinessSection>('overview');
   const [mobileOpen, setMobileOpen] = useState(false);
   const meta = sectionMeta[active];
@@ -67,7 +190,7 @@ export function App() {
         </nav>
         <div className="sidebar-bottom">
           <div className="help-card"><div className="help-icon"><CircleHelp size={17} /></div><strong>Need a hand?</strong><p>Business workspace guide and support.</p><a href="mailto:support@web2table.io">Contact support <ExternalLink size={12} /></a></div>
-          <div className="profile-row"><div className="profile-avatar"><img src="https://raw.githubusercontent.com/web2table/Web2Table-Billing/main/web2table1.png" alt="" /></div><div><strong>Business Owner</strong><span>Internal account</span></div><button className="icon-button" aria-label="Profile menu"><ChevronDown size={16} /></button></div>
+          <div className="profile-row"><div className="profile-avatar"><img src="https://raw.githubusercontent.com/web2table/Web2Table-Billing/main/web2table1.png" alt="" /></div><div><strong>{email}</strong><span>Business Owner</span></div><button className="icon-button" onClick={onSignOut} aria-label="Sign out" title="Sign out"><ChevronDown size={16} /></button></div>
         </div>
       </aside>
 
