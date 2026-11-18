@@ -1,0 +1,11 @@
+# Web2Table Business - SPA route fallback
+Options -MultiViews
+RewriteEngine On
+
+# Serve existing files and directories directly
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Route client-side application paths to the Vite entry point
+RewriteRule ^ index.html [L]
