@@ -81,35 +81,36 @@ export function App() {
   const [email, setEmail] = useState('');
 
   useEffect(() => {
-    if (!supabase) return;
+    const client = supabase;
+    if (!client) return;
     let alive = true;
     const verifySession = async () => {
-      const { data: sessionData } = await supabase.auth.getSession();
+      const { data: sessionData } = await client.auth.getSession();
       if (!alive) return;
       if (!sessionData.session) { setStatus('signed-out'); setEmail(''); return; }
-      const { data, error } = await supabase.auth.getUser();
+      const { data, error } = await client.auth.getUser();
       if (!alive) return;
       if (!error && data.user && hasBusinessOwnerAccess(data.user)) {
         setEmail(data.user.email ?? 'Business Owner');
         setStatus('authorized');
       } else {
-        await supabase.auth.signOut();
+        await client.auth.signOut();
         if (alive) { setEmail(''); setStatus('denied'); }
       }
     };
     void verifySession();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT' || !session) {
         if (alive) { setEmail(''); setStatus('signed-out'); }
         return;
       }
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-        queueMicrotask(() => { void supabase!.auth.getUser().then(({ data, error }) => {
+        queueMicrotask(() => { void client.auth.getUser().then(({ data, error }) => {
           if (!alive) return;
           if (!error && data.user && hasBusinessOwnerAccess(data.user)) {
             setEmail(data.user.email ?? 'Business Owner'); setStatus('authorized');
           } else {
-            void supabase!.auth.signOut();
+            void client.auth.signOut();
             setEmail(''); setStatus('denied');
           }
         }); });
