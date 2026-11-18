@@ -399,3 +399,22 @@ body { color:#111; background:#f7f7f7; }
 .connection-icon { color:#555; background:#eee; }
 .report-positive { color:#222 !important; }
 .report-negative { color:#d71920 !important; }
+
+
+/* Financial reports: balanced three-card layout and consistent brand styling */
+.report-summary-grid { grid-template-columns:repeat(3,minmax(0,1fr)) !important; }
+.report-summary-grid .subscription-summary-card { min-height:112px; }
+.report-summary-grid .subscription-summary-card strong { color:#111 !important; }
+.report-content-grid { grid-template-columns:minmax(0,1.45fr) minmax(300px,.95fr); align-items:start; }
+.monthly-report-row { padding:17px 18px; }
+.monthly-report-head strong { color:#111; }
+.report-bars i { background:#ededed; }
+.report-bars b { color:#222; }
+.report-positive { color:#111 !important; }
+.report-negative { color:#d71920 !important; }
+.main-area .button-primary { background:#d71920 !important; border-color:#d71920 !important; color:#fff !important; }
+.main-area .button-primary:hover { background:#b51219 !important; border-color:#b51219 !important; }
+.sidebar { background:#101010 !important; }
+.nav-item.active { background:#292929 !important; box-shadow:inset 3px 0 #e31b23 !important; }
+@media(max-width:900px){.report-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr)) !important;}}
+@media(max-width:560px){.report-summary-grid{grid-template-columns:1fr !important;}.report-content-grid{grid-template-columns:1fr;}}
