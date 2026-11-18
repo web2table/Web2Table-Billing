@@ -302,7 +302,49 @@ function PricingSettings() {
     if (current) setAmount(String(current.amount_php));
     setBusy(false);
   };
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    void load();
+    const fetchPlans = async () => {
+      if (!supabase) return;
+      const { data, error: plansError } = await supabase.from('business_subscription_plans')
+        .select('id,name,billing_interval').eq('is_active', true).order('name');
+      if (plansError) setError(plansError.message);
+      else setPlans((data ?? []) as SubscriptionPlanOption[]);
+    };
+    void fetchPlans();
+  }, []);
+
+  const beginAssignment = (row: TenantSubscriptionRow) => {
+    setEditingTenant(row);
+    setPlanId(row.plan_id ?? plans[0]?.id ?? '');
+    setSubStatus(row.subscription_status ?? 'pending');
+    setStartedAt('');
+    setPeriodStart('');
+    setPeriodEnd('');
+    setNextBilling('');
+    setNotes('');
+    setSaveMessage('');
+  };
+
+  const saveAssignment = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!supabase || !editingTenant || !planId) return;
+    setSaving(true); setSaveMessage('');
+    const { error: saveError } = await supabase.rpc('business_assign_tenant_subscription', {
+      p_tenant_id: editingTenant.tenant_id,
+      p_plan_id: planId,
+      p_status: subStatus,
+      p_started_at: manilaMidnight(startedAt),
+      p_period_start: manilaMidnight(periodStart),
+      p_period_end: manilaMidnight(periodEnd),
+      p_next_billing_at: manilaMidnight(nextBilling),
+      p_notes: notes
+    });
+    setSaving(false);
+    if (saveError) { setSaveMessage(saveError.message); return; }
+    setEditingTenant(null);
+    await load();
+  };
   const save = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!supabase || !plan) return;
@@ -382,11 +424,26 @@ function subscriptionStatusLabel(row: TenantSubscriptionRow) {
   return row.subscription_status ?? 'Not assigned';
 }
 
+type SubscriptionPlanOption = { id: string; name: string; billing_interval: string };
+function manilaMidnight(value: string) {
+  return value ? new Date(value + 'T00:00:00+08:00').toISOString() : null;
+}
 function SubscriptionsWorkspace() {
   const [rows, setRows] = useState<TenantSubscriptionRow[]>([]);
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState('');
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null);
+  const [plans, setPlans] = useState<SubscriptionPlanOption[]>([]);
+  const [editingTenant, setEditingTenant] = useState<TenantSubscriptionRow | null>(null);
+  const [planId, setPlanId] = useState('');
+  const [subStatus, setSubStatus] = useState('pending');
+  const [startedAt, setStartedAt] = useState('');
+  const [periodStart, setPeriodStart] = useState('');
+  const [periodEnd, setPeriodEnd] = useState('');
+  const [nextBilling, setNextBilling] = useState('');
+  const [notes, setNotes] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
 
   const load = async () => {
     if (!supabase) return;
@@ -418,7 +475,7 @@ function SubscriptionsWorkspace() {
       <div className="panel-heading"><div><h2>Tenant subscriptions</h2><p>Subscription records and tenant status. No payments are initiated from this screen.</p></div><button className="button-secondary" type="button" onClick={() => void load()} disabled={busy}>{busy ? 'Refreshing…' : 'Refresh'}</button></div>
       {error && <div className="pricing-message pricing-error" role="alert">{error}</div>}
       {busy && rows.length === 0 ? <div className="pricing-loading">Loading tenant subscription records…</div> : rows.length === 0 ? <div className="pricing-loading">No tenants were returned.</div> :
-        <div className="pricing-table-wrap"><table className="pricing-table subscription-table"><thead><tr><th>Tenant</th><th>Tenant status</th><th>Plan</th><th>Subscription</th><th>Amount</th><th>Period ends</th><th>Next billing</th></tr></thead><tbody>
+        <div className="pricing-table-wrap"><table className="pricing-table subscription-table"><thead><tr><th>Tenant</th><th>Tenant status</th><th>Plan</th><th>Subscription</th><th>Amount</th><th>Period ends</th><th>Next billing</th><th>Action</th></tr></thead><tbody>
           {rows.map(row => <tr key={row.tenant_id}>
             <td><strong>{row.tenant_name}</strong><small className="subscription-slug">{row.tenant_slug}</small></td>
             <td><span className="subscription-state">{row.tenant_status}</span></td>
@@ -427,8 +484,23 @@ function SubscriptionsWorkspace() {
             <td>{formatPHP(row.amount_php)}{row.billing_interval && <small className="subscription-slug">/{row.billing_interval}</small>}</td>
             <td>{formatManilaDate(row.current_period_end)}</td>
             <td>{formatManilaDate(row.next_billing_at)}</td>
+            <td><button className="button-secondary subscription-edit-button" type="button" onClick={() => beginAssignment(row)}>{row.subscription_id ? 'Manage' : 'Assign'}</button></td>
           </tr>)}
         </tbody></table></div>}
+      {editingTenant && <form className="subscription-assignment-form" onSubmit={saveAssignment}>
+        <div className="panel-heading"><div><h2>{editingTenant.subscription_id ? 'Update subscription' : 'Assign subscription'}</h2><p>{editingTenant.tenant_name} · Set the plan and dates confirmed with this tenant.</p></div><button className="button-secondary" type="button" onClick={() => setEditingTenant(null)}>Close</button></div>
+        <div className="subscription-form-grid">
+          <label>Plan<select required value={planId} onChange={e => setPlanId(e.target.value)}><option value="">Choose plan</option>{plans.map(plan => <option key={plan.id} value={plan.id}>{plan.name} · {plan.billing_interval}</option>)}</select></label>
+          <label>Status<select value={subStatus} onChange={e => setSubStatus(e.target.value)}>{['pending','trialing','active','past_due','suspended','cancelled'].map(status => <option key={status} value={status}>{status}</option>)}</select></label>
+          <label>Subscription start (optional)<input type="date" value={startedAt} onChange={e => setStartedAt(e.target.value)} /></label>
+          <label>Billing period start (optional)<input type="date" value={periodStart} onChange={e => setPeriodStart(e.target.value)} /></label>
+          <label>Billing period end (optional)<input type="date" value={periodEnd} onChange={e => setPeriodEnd(e.target.value)} /></label>
+          <label>Next billing date (optional)<input type="date" value={nextBilling} onChange={e => setNextBilling(e.target.value)} /></label>
+          <label className="subscription-notes-field">Internal notes<textarea rows={2} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Optional notes about the agreed subscription" /></label>
+        </div>
+        <div className="subscription-form-footer"><span>Price is taken from the plan's current effective price. This does not collect payment.</span><button className="button-primary" type="submit" disabled={saving || !planId}>{saving ? 'Saving…' : 'Save subscription'}</button></div>
+        {saveMessage && <div className="pricing-message pricing-error" role="alert">{saveMessage}</div>}
+      </form>}
       {refreshedAt && <div className="subscription-refresh-note">Last refreshed {refreshedAt.toLocaleTimeString('en-PH', { timeZone: 'Asia/Manila' })} · Asia/Manila</div>}
     </section>
   </div>;
