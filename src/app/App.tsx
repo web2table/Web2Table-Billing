@@ -302,49 +302,6 @@ function PricingSettings() {
     if (current) setAmount(String(current.amount_php));
     setBusy(false);
   };
-  useEffect(() => {
-    void load();
-    const fetchPlans = async () => {
-      if (!supabase) return;
-      const { data, error: plansError } = await supabase.from('business_subscription_plans')
-        .select('id,name,billing_interval').eq('is_active', true).order('name');
-      if (plansError) setError(plansError.message);
-      else setPlans((data ?? []) as SubscriptionPlanOption[]);
-    };
-    void fetchPlans();
-  }, []);
-
-  const beginAssignment = (row: TenantSubscriptionRow) => {
-    setEditingTenant(row);
-    setPlanId(row.plan_id ?? plans[0]?.id ?? '');
-    setSubStatus(row.subscription_status ?? 'pending');
-    setStartedAt('');
-    setPeriodStart('');
-    setPeriodEnd('');
-    setNextBilling('');
-    setNotes('');
-    setSaveMessage('');
-  };
-
-  const saveAssignment = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!supabase || !editingTenant || !planId) return;
-    setSaving(true); setSaveMessage('');
-    const { error: saveError } = await supabase.rpc('business_assign_tenant_subscription', {
-      p_tenant_id: editingTenant.tenant_id,
-      p_plan_id: planId,
-      p_status: subStatus,
-      p_started_at: manilaMidnight(startedAt),
-      p_period_start: manilaMidnight(periodStart),
-      p_period_end: manilaMidnight(periodEnd),
-      p_next_billing_at: manilaMidnight(nextBilling),
-      p_notes: notes
-    });
-    setSaving(false);
-    if (saveError) { setSaveMessage(saveError.message); return; }
-    setEditingTenant(null);
-    await load();
-  };
   const save = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!supabase || !plan) return;
@@ -459,7 +416,49 @@ function SubscriptionsWorkspace() {
     setBusy(false);
   };
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    void load();
+    const fetchPlans = async () => {
+      if (!supabase) return;
+      const { data, error: plansError } = await supabase.from('business_subscription_plans')
+        .select('id,name,billing_interval').eq('is_active', true).order('name');
+      if (plansError) setError(plansError.message);
+      else setPlans((data ?? []) as SubscriptionPlanOption[]);
+    };
+    void fetchPlans();
+  }, []);
+
+  const beginAssignment = (row: TenantSubscriptionRow) => {
+    setEditingTenant(row);
+    setPlanId(row.plan_id ?? plans[0]?.id ?? '');
+    setSubStatus(row.subscription_status ?? 'pending');
+    setStartedAt('');
+    setPeriodStart('');
+    setPeriodEnd('');
+    setNextBilling('');
+    setNotes('');
+    setSaveMessage('');
+  };
+
+  const saveAssignment = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!supabase || !editingTenant || !planId) return;
+    setSaving(true); setSaveMessage('');
+    const { error: saveError } = await supabase.rpc('business_assign_tenant_subscription', {
+      p_tenant_id: editingTenant.tenant_id,
+      p_plan_id: planId,
+      p_status: subStatus,
+      p_started_at: manilaMidnight(startedAt),
+      p_period_start: manilaMidnight(periodStart),
+      p_period_end: manilaMidnight(periodEnd),
+      p_next_billing_at: manilaMidnight(nextBilling),
+      p_notes: notes
+    });
+    setSaving(false);
+    if (saveError) { setSaveMessage(saveError.message); return; }
+    setEditingTenant(null);
+    await load();
+  };
   const activeCount = rows.filter(row => row.subscription_status === 'active').length;
   const pendingCount = rows.filter(row => row.subscription_status === 'pending').length;
   const unassignedCount = rows.filter(row => !row.subscription_id).length;
