@@ -493,3 +493,27 @@ td { color:#ddd; }
 a,.text-action,.eyebrow { color:#ff4149; }
 hr { border-color:#303030; }
 @media(hover:none){.nav-item:hover{background:transparent;color:#c8c8c8}.nav-item.active:hover{background:#241315;color:#fff}}
+
+
+/* Financial report contrast correction: restore visible KPI amounts on dark cards */
+.report-summary-grid .subscription-summary-card strong,
+.report-summary-grid .subscription-summary-card .report-positive,
+.report-summary-grid .subscription-summary-card .report-negative {
+  color:#ffffff !important;
+  display:block;
+  font-size:27px;
+  line-height:1.25;
+  opacity:1;
+}
+.report-summary-grid .subscription-summary-card {
+  background:#101010 !important;
+  border:1px solid #303030 !important;
+  min-height:112px;
+}
+.report-summary-grid .subscription-summary-card span,
+.report-summary-grid .subscription-summary-card small {
+  color:#b8b8b8 !important;
+}
+.report-positive { color:#ffffff !important; }
+.report-negative { color:#ff4b53 !important; }
+.report-content-grid .panel { background:#101010 !important; }
