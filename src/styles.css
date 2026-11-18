@@ -360,3 +360,42 @@ h1,h2,h3,p { margin-top:0; }.page-heading h1 { font:800 27px Manrope;letter-spac
 .activity-log-details { display:flex; flex-wrap:wrap; gap:7px; }
 .activity-log-details span { color:#63758b; background:#f7f9fb; border:1px solid #edf0f4; border-radius:6px; padding:4px 7px; font-size:10px; }
 @media(max-width:600px){.activity-log-title{align-items:flex-start;flex-direction:column;gap:6px}.activity-log-row{padding:13px 12px}.activity-log-meta{flex-direction:column;gap:4px}}
+
+
+/* Web2Table brand palette: black, white and red */
+:root {
+  --ink:#111111;
+  --muted:#737373;
+  --line:#e7e7e7;
+  --red:#d71920;
+  --red-dark:#b51219;
+}
+body { color:#111; background:#f7f7f7; }
+.sidebar { background:#101010; color:#fff; }
+.nav-label { color:#858585; }
+.nav-item { color:#c8c8c8; }
+.nav-item:hover { background:#242424; color:#fff; }
+.nav-item.active { background:#292929; color:#fff; box-shadow:inset 3px 0 #e31b23; }
+.nav-item.active svg { color:#ff454b; }
+.brand-mark { background:#d71920; }
+.topbar { background:#fff; }
+.breadcrumb strong,.metric-value,.panel-heading h2,.section-title-row h2,
+.module-empty h3,.activity-log-title strong { color:#111; }
+.button-primary { background:#d71920; border-color:#d71920; color:#fff; }
+.button-primary:hover { background:#b51219; border-color:#b51219; }
+.button-secondary { color:#222; border-color:#dedede; background:#fff; }
+.button-secondary:hover,.period-button:hover { border-color:#bdbdbd; background:#f5f5f5; }
+.eyebrow,.text-action { color:#d71920; }
+.metric-icon,.chart-icon,.activity-icon,.empty-symbol { color:#d71920; background:#fcebed; }
+.report-revenue-bar { background:#d71920; }
+.report-expense-bar { background:#777; }
+.activity-log-symbol { color:#d71920; background:#fcebed; }
+.activity-log-action { color:#8f151b; background:#fcebed; }
+.activity-log-details span { color:#454545; background:#f7f7f7; border-color:#e9e9e9; }
+.environment-chip { color:#555; background:#f2f2f2; }
+.status-pill { color:#555; background:#f2f2f2; }
+.profile-row span,.brand-lockup span { color:#aaa; }
+.connection-banner { border-color:#e6e0d8; background:#faf8f5; }
+.connection-icon { color:#555; background:#eee; }
+.report-positive { color:#222 !important; }
+.report-negative { color:#d71920 !important; }
