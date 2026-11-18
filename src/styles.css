@@ -517,3 +517,36 @@ hr { border-color:#303030; }
 .report-positive { color:#ffffff !important; }
 .report-negative { color:#ff4b53 !important; }
 .report-content-grid .panel { background:#101010 !important; }
+
+
+/* Exact Web2Table marketing palette: black canvas, white type, vivid red */
+:root { color-scheme:dark; background:#000; --red:#f21d2b; --red-dark:#cf1420; --ink:#fff; --muted:#a6a6a6; --line:#292929; }
+html,body,#root,.app-shell,.main-area,.page-content { background:#000 !important; color:#fff !important; }
+.sidebar,.topbar { background:#000 !important; border-color:#242424 !important; }
+.panel,.metric-card,.subscription-summary-card,.subscription-list-panel,.module-panel,
+.connection-banner,.help-card,.workspace-switch { background:#080808 !important; border-color:#292929 !important; box-shadow:none !important; }
+.nav-item.active { background:#171717 !important; box-shadow:inset 3px 0 #f21d2b !important; }
+.nav-item.active svg,.eyebrow,.text-action { color:#f21d2b !important; }
+.button-primary,.main-area .button-primary,.auth-submit { background:#f21d2b !important; border-color:#f21d2b !important; color:#fff !important; }
+.button-primary:hover,.main-area .button-primary:hover,.auth-submit:hover { background:#cf1420 !important; border-color:#cf1420 !important; }
+.button-secondary,.period-button,.expense-filter,.report-range input,.report-range select,
+.main-area input,.main-area select,.main-area textarea { background:#0d0d0d !important; color:#fff !important; border-color:#303030 !important; }
+.page-heading h1,.page-heading h2,.section-title-row h2,.panel-heading h2,.module-toolbar h2,
+.module-empty h3,.metric-value,.subscription-summary-card strong,.monthly-report-head strong,
+.activity-log-title strong,.breadcrumb strong { color:#fff !important; }
+.page-heading p,.section-title-row p,.panel-heading p,.module-toolbar p,.metric-top,.metric-note,
+.subscription-summary-card span,.subscription-summary-card small,.report-footnote,
+.activity-log-meta,.page-footer { color:#a6a6a6 !important; }
+.report-summary-grid .subscription-summary-card strong,
+.report-summary-grid .subscription-summary-card .report-positive { color:#fff !important; }
+.report-summary-grid .subscription-summary-card .report-negative { color:#ff4b53 !important; }
+.report-positive { color:#fff !important; }
+.report-negative { color:#ff4b53 !important; }
+.report-revenue-bar { background:#f21d2b !important; }
+.report-expense-bar { background:#777 !important; }
+.report-bars i { background:#292929 !important; }
+.monthly-report-row,.category-report-list>div,.activity-log-row,
+.subscription-table th,.subscription-table td { border-color:#292929 !important; }
+.environment-chip,.status-pill,.activity-log-action,.activity-log-details span,
+.pricing-tag,.subscription-state { background:#171717 !important; color:#ddd !important; border-color:#303030 !important; }
+a { color:#f21d2b; }
