@@ -180,3 +180,34 @@ h1,h2,h3,p { margin-top:0; }.page-heading h1 { font:800 27px Manrope;letter-spac
 .mfa-secret{display:flex;flex-direction:column;gap:7px;padding:11px 12px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;margin-bottom:17px}
 .mfa-secret span{font-size:9px;color:#64748b;font-weight:650}
 .mfa-secret code{font-size:12px;letter-spacing:1.2px;word-break:break-all;color:#101b2f}
+
+
+/* Subscription plan pricing */
+.pricing-settings{display:grid;gap:15px}
+.pricing-panel,.pricing-status,.pricing-history{padding:21px}
+.pricing-tag{font-size:9px;font-weight:700;color:#475569;background:#f1f5f9;border-radius:20px;padding:7px 10px}
+.pricing-form{display:grid;gap:17px;margin-top:23px}
+.pricing-form label{display:block;font-size:10px;font-weight:700;color:#475569;margin:0 0 7px}
+.pricing-form input,.pricing-form textarea{width:100%;border:1px solid #dbe1e9;border-radius:7px;padding:11px 12px;font:12px inherit;color:#172033;background:#fff;outline:none}
+.pricing-form input:focus,.pricing-form textarea:focus{border-color:#2563eb;box-shadow:0 0 0 3px #2563eb18}
+.pricing-form small{display:block;color:#8490a1;font-size:9px;line-height:1.5;margin-top:6px}
+.pricing-fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.price-input{position:relative}.price-input>span{position:absolute;left:12px;top:11px;font-size:12px;color:#64748b}.price-input input{padding-left:27px}
+.pricing-note{display:flex;gap:10px;align-items:flex-start;background:#f1f7fb;border:1px solid #dbeaf3;border-radius:8px;padding:12px;color:#456276;font-size:10px;line-height:1.6}
+.pricing-note svg{flex:none;color:#2563eb}
+.pricing-actions{display:flex;justify-content:flex-end}
+.pricing-message{padding:10px 12px;border-radius:7px;font-size:10px;margin-top:15px}
+.pricing-error{background:#fff1f2;color:#9f2634;border:1px solid #fecdd3}
+.pricing-success{background:#effaf2;color:#236b36;border:1px solid #ccebd3}
+.pricing-loading{padding:24px 0;color:#8792a2;font-size:11px;text-align:center}
+.pricing-status-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
+.pricing-status-grid>div{background:#f8fafc;border:1px solid #e8edf3;border-radius:8px;padding:15px;display:flex;flex-direction:column;gap:7px}
+.pricing-status-grid span{font-size:10px;color:#64748b}.pricing-status-grid strong{font:800 23px Manrope;color:#101b2f}.pricing-status-grid small{font-size:9px;color:#8792a2}
+.pricing-table-wrap{overflow-x:auto;margin-top:16px}
+.pricing-table{width:100%;border-collapse:collapse;text-align:left;font-size:10px}
+.pricing-table th{color:#7b8797;font-weight:700;background:#f8fafc}
+.pricing-table th,.pricing-table td{padding:12px;border-bottom:1px solid #edf0f4;white-space:nowrap}
+.pricing-table td:first-child{font-weight:750;color:#172033}
+.price-status-current,.price-status-upcoming{display:inline-flex;padding:5px 8px;border-radius:20px;font-size:9px;font-weight:700;background:#eaf6ee;color:#287044}
+.price-status-upcoming{background:#fff6e7;color:#94651c}
+@media(max-width:600px){.pricing-fields,.pricing-status-grid{grid-template-columns:1fr}.pricing-panel,.pricing-status,.pricing-history{padding:15px}}
