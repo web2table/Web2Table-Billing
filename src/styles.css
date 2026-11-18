@@ -211,3 +211,20 @@ h1,h2,h3,p { margin-top:0; }.page-heading h1 { font:800 27px Manrope;letter-spac
 .price-status-current,.price-status-upcoming{display:inline-flex;padding:5px 8px;border-radius:20px;font-size:9px;font-weight:700;background:#eaf6ee;color:#287044}
 .price-status-upcoming{background:#fff6e7;color:#94651c}
 @media(max-width:600px){.pricing-fields,.pricing-status-grid{grid-template-columns:1fr}.pricing-panel,.pricing-status,.pricing-history{padding:15px}}
+
+
+/* Tenant subscription workspace */
+.subscriptions-workspace { display: grid; gap: 20px; }
+.subscription-summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.subscription-summary-card { background: #fff; border: 1px solid #e8edf3; border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.subscription-summary-card span { color: #64748b; font-size: 12px; font-weight: 600; }
+.subscription-summary-card strong { color: #17243a; font-size: 27px; letter-spacing: -.6px; }
+.subscription-summary-card small, .subscription-slug { color: #8491a3; font-size: 11px; display: block; margin-top: 4px; }
+.subscription-list-panel { min-width: 0; }
+.subscription-table { min-width: 880px; }
+.subscription-table td:first-child strong { color: #17243a; font-size: 13px; }
+.subscription-state { display: inline-flex; align-items: center; border-radius: 999px; padding: 5px 9px; background: #edf7f2; color: #28734e; font-size: 11px; font-weight: 650; text-transform: capitalize; }
+.subscription-unassigned { background: #f1f4f8; color: #657286; }
+.subscription-refresh-note { color: #8793a3; font-size: 11px; margin-top: 12px; text-align: right; }
+@media (max-width: 900px) { .subscription-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .subscription-summary-grid { gap: 9px; } .subscription-summary-card { padding: 14px; } .subscription-summary-card strong { font-size: 23px; } }
