@@ -33,14 +33,16 @@ jobs:
       - name: Build production frontend
         run: npm run build
 
-      - name: Deploy dist to Hostinger over SSH
-        uses: appleboy/scp-action@v1
+      - name: Deploy dist to Hostinger over FTPS
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
-          host: ${{ secrets.HOSTINGER_SSH_HOST }}
-          username: ${{ secrets.HOSTINGER_SSH_USERNAME }}
-          password: ${{ secrets.HOSTINGER_SSH_PASSWORD }}
-          port: ${{ secrets.HOSTINGER_SSH_PORT }}
-          source: "dist/*"
-          target: "public_html/"
-          strip_components: 1
-          overwrite: true
+          server: ${{ secrets.HOSTINGER_FTP_SERVER }}
+          username: ${{ secrets.HOSTINGER_FTP_USERNAME }}
+          password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
+          protocol: ftps
+          port: 21
+          local-dir: ./dist/
+          server-dir: ${{ secrets.HOSTINGER_FTP_SERVER_DIR }}
+          dangerous-clean-slate: false
+          timeout: 0
+          log-level: verbose
