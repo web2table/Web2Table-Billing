@@ -382,9 +382,29 @@ function subscriptionStatusLabel(row: TenantSubscriptionRow) {
 }
 
 type SubscriptionPlanOption = { id: string; name: string; billing_interval: string };
+function todayInManila() {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+}
 function manilaMidnight(value: string) {
   return value ? new Date(value + 'T00:00:00+08:00').toISOString() : null;
 }
+function subscriptionDatePreview(startValue: string, interval: string) {
+  if (!startValue) return null;
+  const [year, month, day] = startValue.split('-').map(Number);
+  const start = new Date(Date.UTC(year, month - 1, day));
+  const monthsToAdd = interval === 'year' ? 12 : 1;
+  const targetMonth = start.getUTCMonth() + monthsToAdd;
+  const targetYear = start.getUTCFullYear() + Math.floor(targetMonth / 12);
+  const normalizedMonth = targetMonth % 12;
+  const lastDay = new Date(Date.UTC(targetYear, normalizedMonth + 1, 0)).getUTCDate();
+  const next = new Date(Date.UTC(targetYear, normalizedMonth, Math.min(day, lastDay)));
+  const end = new Date(next);
+  end.setUTCDate(end.getUTCDate() - 1);
+  const iso = (date: Date) => date.toISOString().slice(0, 10);
+  const pretty = (value: string) => new Date(value + 'T00:00:00Z').toLocaleDateString('en-PH', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+  return { start: pretty(startValue), end: pretty(iso(end)), next: pretty(iso(next)) };
+}
+
 function SubscriptionsWorkspace() {
   const [rows, setRows] = useState<TenantSubscriptionRow[]>([]);
   const [busy, setBusy] = useState(true);
@@ -394,10 +414,7 @@ function SubscriptionsWorkspace() {
   const [editingTenant, setEditingTenant] = useState<TenantSubscriptionRow | null>(null);
   const [planId, setPlanId] = useState('');
   const [subStatus, setSubStatus] = useState('pending');
-  const [startedAt, setStartedAt] = useState('');
-  const [periodStart, setPeriodStart] = useState('');
-  const [periodEnd, setPeriodEnd] = useState('');
-  const [nextBilling, setNextBilling] = useState('');
+  const [startedAt, setStartedAt] = useState(todayInManila());
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
@@ -432,10 +449,7 @@ function SubscriptionsWorkspace() {
     setEditingTenant(row);
     setPlanId(row.plan_id ?? plans[0]?.id ?? '');
     setSubStatus(row.subscription_status ?? 'pending');
-    setStartedAt('');
-    setPeriodStart('');
-    setPeriodEnd('');
-    setNextBilling('');
+    setStartedAt(todayInManila());
     setNotes('');
     setSaveMessage('');
   };
@@ -449,9 +463,9 @@ function SubscriptionsWorkspace() {
       p_plan_id: planId,
       p_status: subStatus,
       p_started_at: manilaMidnight(startedAt),
-      p_period_start: manilaMidnight(periodStart),
-      p_period_end: manilaMidnight(periodEnd),
-      p_next_billing_at: manilaMidnight(nextBilling),
+      p_period_start: null,
+      p_period_end: null,
+      p_next_billing_at: null,
       p_notes: notes
     });
     setSaving(false);
@@ -487,17 +501,48 @@ function SubscriptionsWorkspace() {
           </tr>)}
         </tbody></table></div>}
       {editingTenant && <form className="subscription-assignment-form" onSubmit={saveAssignment}>
-        <div className="panel-heading"><div><h2>{editingTenant.subscription_id ? 'Update subscription' : 'Assign subscription'}</h2><p>{editingTenant.tenant_name} · Set the plan and dates confirmed with this tenant.</p></div><button className="button-secondary" type="button" onClick={() => setEditingTenant(null)}>Close</button></div>
-        <div className="subscription-form-grid">
-          <label>Plan<select required value={planId} onChange={e => setPlanId(e.target.value)}><option value="">Choose plan</option>{plans.map(plan => <option key={plan.id} value={plan.id}>{plan.name} · {plan.billing_interval}</option>)}</select></label>
-          <label>Status<select value={subStatus} onChange={e => setSubStatus(e.target.value)}>{['pending','trialing','active','past_due','suspended','cancelled'].map(status => <option key={status} value={status}>{status}</option>)}</select></label>
-          <label>Subscription start (optional)<input type="date" value={startedAt} onChange={e => setStartedAt(e.target.value)} /></label>
-          <label>Billing period start (optional)<input type="date" value={periodStart} onChange={e => setPeriodStart(e.target.value)} /></label>
-          <label>Billing period end (optional)<input type="date" value={periodEnd} onChange={e => setPeriodEnd(e.target.value)} /></label>
-          <label>Next billing date (optional)<input type="date" value={nextBilling} onChange={e => setNextBilling(e.target.value)} /></label>
-          <label className="subscription-notes-field">Internal notes<textarea rows={2} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Optional notes about the agreed subscription" /></label>
+        <div className="panel-heading"><div><h2>{editingTenant.subscription_id ? 'Manage subscription' : 'Assign a plan'}</h2><p>{editingTenant.tenant_name} · Choose a plan and start date. We'll calculate the billing schedule.</p></div><button className="button-secondary" type="button" onClick={() => setEditingTenant(null)}>Close</button></div>
+        <div className="subscription-form-grid subscription-form-grid-simple">
+          <label>Subscription plan
+            <select required value={planId} onChange={e => setPlanId(e.target.value)}>
+              <option value="">Choose a plan</option>
+              {plans.map(plan => <option key={plan.id} value={plan.id}>{plan.name} · {plan.billing_interval === 'year' ? 'Yearly' : 'Monthly'}</option>)}
+            </select>
+          </label>
+          <label>Subscription status
+            <select value={subStatus} onChange={e => setSubStatus(e.target.value)}>
+              <option value="pending">Pending — not started yet</option>
+              <option value="active">Active — service is running</option>
+              <option value="trialing">Free trial</option>
+              <option value="past_due">Past due — payment overdue</option>
+              <option value="suspended">Suspended — service paused</option>
+              <option value="cancelled">Cancelled — subscription ended</option>
+            </select>
+          </label>
+          <label>Start date
+            <input required type="date" value={startedAt} onChange={e => setStartedAt(e.target.value)} />
+            <small>Choose the agreed date the subscription begins.</small>
+          </label>
+          <div className="subscription-schedule-preview">
+            <div className="subscription-preview-heading"><strong>Billing schedule</strong><span>Calculated automatically</span></div>
+            {(() => {
+              const selectedPlan = plans.find(plan => plan.id === planId);
+              const preview = subscriptionDatePreview(startedAt, selectedPlan?.billing_interval ?? 'month');
+              if (!preview) return <p>Select a start date to preview the billing schedule.</p>;
+              return <div className="subscription-preview-grid">
+                <div><small>First billing period</small><strong>{preview.start} – {preview.end}</strong></div>
+                <div><small>Next renewal date</small><strong>{preview.next}</strong></div>
+              </div>;
+            })()}
+          </div>
+          <label className="subscription-notes-field">Internal notes <span className="subscription-optional">Optional</span>
+            <textarea rows={2} value={notes} onChange={e => setNotes(e.target.value)} placeholder="e.g. Subscription agreed with the restaurant owner" />
+          </label>
         </div>
-        <div className="subscription-form-footer"><span>Price is taken from the plan's current effective price. This does not collect payment.</span><button className="button-primary" type="submit" disabled={saving || !planId}>{saving ? 'Saving…' : 'Save subscription'}</button></div>
+        <div className="subscription-form-footer">
+          <span>Dates renew automatically. A subscription charge record is created for active subscriptions. No card is charged automatically.</span>
+          <button className="button-primary" type="submit" disabled={saving || !planId || !startedAt}>{saving ? 'Saving…' : 'Save subscription'}</button>
+        </div>
         {saveMessage && <div className="pricing-message pricing-error" role="alert">{saveMessage}</div>}
       </form>}
       {refreshedAt && <div className="subscription-refresh-note">Last refreshed {refreshedAt.toLocaleTimeString('en-PH', { timeZone: 'Asia/Manila' })} · Asia/Manila</div>}
