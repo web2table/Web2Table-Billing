@@ -354,6 +354,86 @@ function PricingSettings() {
   </div>;
 }
 
+type TenantSubscriptionRow = {
+  tenant_id: string;
+  tenant_name: string;
+  tenant_slug: string;
+  tenant_status: string;
+  subscription_id: string | null;
+  subscription_status: string | null;
+  plan_id: string | null;
+  plan_name: string | null;
+  billing_interval: string | null;
+  amount_php: number | null;
+  currency: string | null;
+  current_period_start: string | null;
+  current_period_end: string | null;
+  next_billing_at: string | null;
+  cancel_at_period_end: boolean | null;
+};
+
+function formatPHP(value: number | null) {
+  return value == null ? '—' : new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(value);
+}
+function formatManilaDate(value: string | null) {
+  return value ? new Date(value).toLocaleDateString('en-PH', { dateStyle: 'medium', timeZone: 'Asia/Manila' }) : '—';
+}
+function subscriptionStatusLabel(row: TenantSubscriptionRow) {
+  return row.subscription_status ?? 'Not assigned';
+}
+
+function SubscriptionsWorkspace() {
+  const [rows, setRows] = useState<TenantSubscriptionRow[]>([]);
+  const [busy, setBusy] = useState(true);
+  const [error, setError] = useState('');
+  const [refreshedAt, setRefreshedAt] = useState<Date | null>(null);
+
+  const load = async () => {
+    if (!supabase) return;
+    setBusy(true); setError('');
+    const { data, error: loadError } = await supabase.rpc('business_list_tenant_subscriptions');
+    if (loadError) {
+      setError(loadError.message);
+      setBusy(false);
+      return;
+    }
+    setRows((data ?? []) as TenantSubscriptionRow[]);
+    setRefreshedAt(new Date());
+    setBusy(false);
+  };
+
+  useEffect(() => { void load(); }, []);
+  const activeCount = rows.filter(row => row.subscription_status === 'active').length;
+  const pendingCount = rows.filter(row => row.subscription_status === 'pending').length;
+  const unassignedCount = rows.filter(row => !row.subscription_id).length;
+
+  return <div className="subscriptions-workspace">
+    <div className="subscription-summary-grid">
+      <article className="subscription-summary-card"><span>Total tenants</span><strong>{busy ? '—' : rows.length}</strong><small>Registered Web2Table tenants</small></article>
+      <article className="subscription-summary-card"><span>Active subscriptions</span><strong>{busy ? '—' : activeCount}</strong><small>Currently marked active</small></article>
+      <article className="subscription-summary-card"><span>Pending subscriptions</span><strong>{busy ? '—' : pendingCount}</strong><small>Awaiting activation or setup</small></article>
+      <article className="subscription-summary-card"><span>Not assigned</span><strong>{busy ? '—' : unassignedCount}</strong><small>No subscription record yet</small></article>
+    </div>
+    <section className="panel subscription-list-panel">
+      <div className="panel-heading"><div><h2>Tenant subscriptions</h2><p>Subscription records and tenant status. No payments are initiated from this screen.</p></div><button className="button-secondary" type="button" onClick={() => void load()} disabled={busy}>{busy ? 'Refreshing…' : 'Refresh'}</button></div>
+      {error && <div className="pricing-message pricing-error" role="alert">{error}</div>}
+      {busy && rows.length === 0 ? <div className="pricing-loading">Loading tenant subscription records…</div> : rows.length === 0 ? <div className="pricing-loading">No tenants were returned.</div> :
+        <div className="pricing-table-wrap"><table className="pricing-table subscription-table"><thead><tr><th>Tenant</th><th>Tenant status</th><th>Plan</th><th>Subscription</th><th>Amount</th><th>Period ends</th><th>Next billing</th></tr></thead><tbody>
+          {rows.map(row => <tr key={row.tenant_id}>
+            <td><strong>{row.tenant_name}</strong><small className="subscription-slug">{row.tenant_slug}</small></td>
+            <td><span className="subscription-state">{row.tenant_status}</span></td>
+            <td>{row.plan_name ?? '—'}</td>
+            <td><span className={row.subscription_id ? 'subscription-state' : 'subscription-state subscription-unassigned'}>{subscriptionStatusLabel(row)}</span>{row.cancel_at_period_end && <small className="subscription-slug">Cancels at period end</small>}</td>
+            <td>{formatPHP(row.amount_php)}{row.billing_interval && <small className="subscription-slug">/{row.billing_interval}</small>}</td>
+            <td>{formatManilaDate(row.current_period_end)}</td>
+            <td>{formatManilaDate(row.next_billing_at)}</td>
+          </tr>)}
+        </tbody></table></div>}
+      {refreshedAt && <div className="subscription-refresh-note">Last refreshed {refreshedAt.toLocaleTimeString('en-PH', { timeZone: 'Asia/Manila' })} · Asia/Manila</div>}
+    </section>
+  </div>;
+}
+
 function EmptyModule({ section }: { section: BusinessSection }) {
   const meta = sectionMeta[section];
   return (
@@ -420,7 +500,7 @@ function BusinessWorkspace({ onSignOut, email }: { onSignOut: () => void; email:
 
           {!isSupabaseConfigured && <div className="connection-banner"><div className="connection-icon"><Command size={17} /></div><div><strong>Data connection not configured</strong><span>Add the public Supabase URL and publishable key to the deployment environment. No live financial figures are being shown.</span></div></div>}
 
-          {active === 'settings' ? <PricingSettings /> : active === 'overview' ? (
+          {active === 'settings' ? <PricingSettings /> : active === 'subscriptions' ? <SubscriptionsWorkspace /> : active === 'overview' ? (
             <>
               <div className="section-title-row"><div><h2>Performance snapshot</h2><p>Live figures will appear after the trusted data integration is connected.</p></div><button className="period-button">All time <ChevronDown size={14} /></button></div>
               <div className="metrics-grid">
