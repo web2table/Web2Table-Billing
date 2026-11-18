@@ -776,3 +776,27 @@ button,input,select,textarea { max-width:100%; }
  .topbar-actions .icon-button { width:30px; }
  .page-content { padding-left:8px; padding-right:8px; }
 }
+
+
+/* Fix desktop horizontal overflow: account for the fixed sidebar in the main width */
+@media (min-width:761px) {
+  .main-area {
+    width:calc(100% - 256px) !important;
+    max-width:calc(100% - 256px);
+    margin-left:256px !important;
+    min-width:0;
+  }
+  .topbar,.page-content {
+    width:100%;
+    max-width:100%;
+    min-width:0;
+  }
+  .page-content { overflow-x:clip; }
+  .metrics-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
+  .overview-grid { grid-template-columns:minmax(0,1.55fr) minmax(0,1fr); }
+  .bottom-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (min-width:761px) and (max-width:1100px) {
+  .metrics-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .overview-grid,.bottom-grid { grid-template-columns:minmax(0,1fr); }
+}
