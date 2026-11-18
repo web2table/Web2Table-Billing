@@ -289,3 +289,56 @@ h1,h2,h3,p { margin-top:0; }.page-heading h1 { font:800 27px Manrope;letter-spac
   .payment-toolbar button { flex: 0 0 auto; }
   .payment-summary-grid .subscription-summary-card strong { font-size: 17px; }
 }
+
+
+/* Expenses and financial reporting */
+.business-module { display:grid; gap:18px; }
+.module-toolbar { display:flex; align-items:center; justify-content:space-between; gap:18px; }
+.module-toolbar h2 { margin:0 0 5px; color:#17243a; font-size:17px; }
+.module-toolbar p { margin:0; color:#78879b; font-size:11px; line-height:1.5; }
+.module-toolbar-actions { display:flex; align-items:center; gap:8px; }
+.expense-summary-grid .subscription-summary-card strong,.report-summary-grid .subscription-summary-card strong { font-size:21px; }
+.expense-filter { min-height:36px; border:1px solid #dce3ec; border-radius:8px; padding:7px 10px; background:#fff; color:#334155; font:inherit; font-size:11px; }
+.expense-table { min-width:920px; }
+.expense-table td { vertical-align:middle; }
+.expense-row-actions { display:flex; gap:6px; }
+.expense-delete { color:#a04444; }
+.expense-form { margin-top:2px; }
+.report-range { display:flex; align-items:end; gap:9px; }
+.report-range label { display:grid; gap:5px; color:#738197; font-size:10px; font-weight:600; }
+.report-range input { min-height:36px; border:1px solid #dce3ec; border-radius:8px; padding:7px 9px; color:#26364b; background:#fff; font:inherit; font-size:11px; }
+.report-content-grid { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(260px,1fr); gap:16px; align-items:start; }
+.monthly-report-list,.category-report-list { display:grid; gap:0; }
+.monthly-report-row { padding:15px 17px; border-top:1px solid #edf0f4; display:grid; gap:12px; }
+.monthly-report-head { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.monthly-report-head strong { color:#24354c; font-size:12px; }
+.monthly-report-head span { color:#687b92; font-size:11px; font-weight:600; }
+.report-bars { display:grid; gap:9px; }
+.report-bars>div { display:grid; grid-template-columns:66px minmax(40px,1fr) 105px; align-items:center; gap:9px; }
+.report-bars small { color:#8290a3; font-size:10px; }
+.report-bars i { height:8px; display:block; background:#edf1f5; border-radius:99px; overflow:hidden; }
+.report-bars i span { display:block; height:100%; border-radius:99px; min-width:0; }
+.report-revenue-bar { background:#287d9b; }
+.report-expense-bar { background:#d49b48; }
+.report-bars b { color:#34465e; text-align:right; font-size:10px; font-weight:600; }
+.category-report-list>div { padding:13px 16px; border-top:1px solid #edf0f4; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.category-report-list span { color:#65758b; font-size:11px; }
+.category-report-list strong { color:#26364b; font-size:11px; }
+.report-positive { color:#16835c !important; }
+.report-negative { color:#bd4b4b !important; }
+.report-footnote { margin:0; color:#8b97a7; font-size:10px; line-height:1.6; }
+@media (max-width:850px) {
+ .module-toolbar { align-items:stretch; flex-direction:column; }
+ .module-toolbar-actions { justify-content:flex-end; }
+ .report-range { flex-wrap:wrap; }
+ .report-range label { flex:1; min-width:120px; }
+ .report-range input { width:100%; }
+ .report-content-grid { grid-template-columns:1fr; }
+}
+@media (max-width:560px) {
+ .expense-summary-grid .subscription-summary-card strong,.report-summary-grid .subscription-summary-card strong { font-size:16px; }
+ .module-toolbar-actions { justify-content:stretch; }
+ .module-toolbar-actions button { flex:1; justify-content:center; }
+ .report-range button { width:100%; }
+ .report-bars>div { grid-template-columns:55px minmax(35px,1fr) 88px; gap:6px; }
+}
