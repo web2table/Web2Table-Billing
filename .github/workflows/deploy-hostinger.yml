@@ -43,16 +43,15 @@ jobs:
           FTP_PASSWORD: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
         run: |
           set -euo pipefail
-          printf 'machine %s login %s password %s\n' "$FTP_SERVER" "$FTP_USERNAME" "$FTP_PASSWORD" > "$HOME/.netrc"
-          chmod 600 "$HOME/.netrc"
           lftp -e "
             set ftp:ssl-allow no
-            set net:max-retries 10
+            set net:max-retries 3
             set net:reconnect-interval-base 5
-            set net:reconnect-interval-max 30
             set net:timeout 30
             set ftp:passive-mode true
-            open "ftp://$FTP_SERVER"
+            open -u \"$FTP_USERNAME\",\"$FTP_PASSWORD\" \"ftp://$FTP_SERVER\"
+            pwd
+            cls -la
             mirror --reverse --verbose --parallel=1 --only-newer ./dist/ ./
             bye
           "
