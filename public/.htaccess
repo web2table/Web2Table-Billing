@@ -1,5 +1,6 @@
 # Web2Table Business - SPA route fallback
 Options -MultiViews
+DirectoryIndex index.html index.php
 RewriteEngine On
 
 # Serve existing files and directories directly
