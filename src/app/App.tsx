@@ -659,6 +659,17 @@ function PaymentsWorkspace() {
   </div>;
 }
 
+function downloadBusinessCsv(filename:string, rows:(string|number|null|undefined)[][]) {
+  const csv=rows.map(row=>row.map(value=>{
+    const text=String(value??'');
+    return '"' + text.replace(/"/g,'""') + '"';
+  }).join(',')).join('\r\n');
+  const blob=new Blob(['\\uFEFF',csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement('a');
+  link.href=url;link.download=filename;document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
+}
+
 type BusinessExpense = { id:string; category:string; description:string; amount_php:number; expense_date:string; payment_method:string; reference:string|null; notes:string; created_at:string };
 const EXPENSE_CATEGORIES = ['Software & services','Hosting & infrastructure','Marketing & advertising','Office & supplies','Transportation','Professional fees','Bank & payment fees','Taxes & permits','Equipment','Other'];
 function ExpensesWorkspace() {
@@ -686,7 +697,7 @@ function ExpensesWorkspace() {
   const visible=rows.filter(r=>filter==='all'||r.category===filter);
   const total=rows.reduce((s,r)=>s+Number(r.amount_php),0);
   return <div className="business-module">
-    <div className="module-toolbar"><div><h2>Expense records</h2><p>Track Web2Table operating costs. These are internal business expenses, not tenant charges.</p></div><div className="module-toolbar-actions"><button className="button-secondary" onClick={()=>void load()} disabled={busy}>Refresh</button><button className="button-primary" onClick={()=>open()}><Plus size={15}/> Add expense</button></div></div>
+    <div className="module-toolbar"><div><h2>Expense records</h2><p>Track Web2Table operating costs. These are internal business expenses, not tenant charges.</p></div><div className="module-toolbar-actions"><button className="button-secondary" onClick={()=>downloadBusinessCsv('web2table-expenses.csv',[['Date','Description','Category','Payment method','Reference','Amount PHP','Notes'],...visible.map(r=>[r.expense_date,r.description,r.category,paymentMethodLabel(r.payment_method),r.reference,Number(r.amount_php),r.notes])])} disabled={busy||visible.length===0}><Download size={14}/> Export CSV</button><button className="button-secondary" onClick={()=>void load()} disabled={busy}>Refresh</button><button className="button-primary" onClick={()=>open()}><Plus size={15}/> Add expense</button></div></div>
     <div className="subscription-summary-grid expense-summary-grid">
       <article className="subscription-summary-card"><span>Recorded expenses</span><strong>{busy?'—':rows.length}</strong><small>All recorded entries</small></article>
       <article className="subscription-summary-card"><span>Total expenses</span><strong>{busy?'—':formatPHP(total)}</strong><small>Across all recorded dates</small></article>
@@ -729,7 +740,7 @@ function FinancialReportsWorkspace(){
  const monthLabel=(v:string)=>new Date(v+'T00:00:00Z').toLocaleDateString('en-PH',{month:'short',year:'numeric',timeZone:'UTC'});
  const max=Math.max(1,...(data?.monthly??[]).flatMap(m=>[Number(m.revenue),Number(m.expenses)]));
  return <div className="business-module">
-  <div className="module-toolbar"><div><h2>Financial overview</h2><p>Subscription collections and recorded operating expenses. Revenue includes confirmed paid charges only.</p></div><div className="report-range"><label>From<input type="date" value={from} onChange={e=>setFrom(e.target.value)}/></label><label>To<input type="date" value={to} onChange={e=>setTo(e.target.value)}/></label><button className="button-primary" onClick={()=>void load()} disabled={busy}>{busy?'Updating…':'Run report'}</button></div></div>
+  <div className="module-toolbar"><div><h2>Financial overview</h2><p>Subscription collections and recorded operating expenses. Revenue includes confirmed paid charges only.</p></div><div className="report-range"><label>From<input type="date" value={from} onChange={e=>setFrom(e.target.value)}/></label><label>To<input type="date" value={to} onChange={e=>setTo(e.target.value)}/></label><button className="button-secondary" onClick={()=>data&&downloadBusinessCsv('web2table-financial-report.csv',[['Report from',from],['Report to',to],[],['Metric','Amount PHP'],['Collected revenue',Number(data.revenue)],['Operating expenses',Number(data.expenses)],['Net operating result',Number(data.revenue)-Number(data.expenses)],[],['Month','Revenue PHP','Expenses PHP','Net PHP'],...(data.monthly??[]).map(m=>[m.month,Number(m.revenue),Number(m.expenses),Number(m.net)]),[],['Expense category','Total PHP'],...(data.by_category??[]).map(x=>[x.category,Number(x.total)])])} disabled={!data||busy}><Download size={14}/> Export CSV</button><button className="button-primary" onClick={()=>void load()} disabled={busy}>{busy?'Updating…':'Run report'}</button></div></div>
   {error&&<div className="pricing-message pricing-error">{error}</div>}
   {!data&&busy?<div className="pricing-loading">Preparing financial report…</div>:data&&<>
    <div className="subscription-summary-grid report-summary-grid">
