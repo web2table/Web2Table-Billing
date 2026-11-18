@@ -52,6 +52,7 @@ jobs:
             set net:reconnect-interval-max 30
             set net:timeout 30
             set ftp:passive-mode true
+            open "ftp://$FTP_SERVER"
             mirror --reverse --verbose --parallel=1 --only-newer ./dist/ ./
             bye
-          " "ftp://$FTP_SERVER"
+          "
