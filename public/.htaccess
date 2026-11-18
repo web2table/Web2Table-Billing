@@ -3,6 +3,9 @@ Options -MultiViews
 DirectoryIndex index.html index.php
 RewriteEngine On
 
+# Never route missing static assets through the SPA entry point.
+RewriteRule ^assets/ - [L]
+
 # Serve existing files and directories directly
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
