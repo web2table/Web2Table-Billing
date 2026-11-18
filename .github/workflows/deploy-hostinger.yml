@@ -31,18 +31,27 @@ jobs:
         run: npm install --no-audit --no-fund
 
       - name: Build production frontend
-        run: npm run build
+        run: npm install --no-audit --no-fund && npm run build
 
-      - name: Deploy dist to Hostinger using plain FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
-        with:
-          server: ${{ secrets.HOSTINGER_FTP_SERVER }}
-          username: ${{ secrets.HOSTINGER_FTP_USERNAME }}
-          password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
-          protocol: ftp
-          port: 21
-          local-dir: ./dist/
-          server-dir: ./
-          dangerous-clean-slate: false
-          timeout: 120000
-          log-level: verbose
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Deploy to Hostinger root over plain FTP with retries
+        env:
+          FTP_SERVER: ${{ secrets.HOSTINGER_FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.HOSTINGER_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
+        run: |
+          set -euo pipefail
+          printf 'machine %s login %s password %s\n' "$FTP_SERVER" "$FTP_USERNAME" "$FTP_PASSWORD" > "$HOME/.netrc"
+          chmod 600 "$HOME/.netrc"
+          lftp -e "
+            set ftp:ssl-allow no
+            set net:max-retries 10
+            set net:reconnect-interval-base 5
+            set net:reconnect-interval-max 30
+            set net:timeout 30
+            set ftp:passive-mode true
+            mirror --reverse --verbose --parallel=1 --only-newer ./dist/ ./
+            bye
+          " "ftp://$FTP_SERVER"
