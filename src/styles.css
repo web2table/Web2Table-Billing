@@ -94,86 +94,6 @@ h1,h2,h3,p { margin-top:0; }.page-heading h1 { font:800 27px Manrope;letter-spac
 @media(max-width:480px){.auth-card{padding:27px 22px}.auth-brand{margin-bottom:30px}}
 
 
-/* Dark navy workspace theme, matched to the Web2Table restaurant dashboard */
-:root {
-  --ink:#101b2f;
-  --muted:#64748b;
-  --line:#e2e8f0;
-  --red:#101b2f;
-  --red-dark:#1b2b45;
-}
-.sidebar {
-  background:#101b2f;
-  color:#f8fafc;
-}
-.brand-lockup span { color:#9aa9bf; }
-.workspace-switch {
-  border-color:#293a55;
-  background:#17263d;
-}
-.workspace-avatar,.profile-avatar { background:#263b5a; }
-.workspace-switch span,.profile-row span { color:#9aa9bf; }
-.nav-label { color:#8192ac; }
-.nav-item { color:#c1ccdc; }
-.nav-item:hover { background:#1b2b45;color:#fff; }
-.nav-item.active {
-  background:#263b5a;
-  color:#fff;
-  box-shadow:inset 2px 0 #22c5e8;
-}
-.nav-item.active svg { color:#8bdcf0; }
-.help-card { border-color:#293a55;background:#17263d; }
-.help-icon { color:#8bdcf0; }
-.help-card p { color:#a8b5c8; }
-.help-card a { color:#8bdcf0; }
-.profile-row { border-top-color:#293a55; }
-.profile-row .icon-button { color:#a8b5c8; }
-.topbar {
-  background:#101b2f;
-  border-bottom:1px solid #293a55;
-}
-.breadcrumb { color:#a8b5c8; }
-.breadcrumb span { color:#64748b; }
-.breadcrumb strong { color:#f8fafc; }
-.environment-chip { background:#263b5a;color:#dbeafe; }
-.icon-button { color:#c1ccdc; }
-.icon-button:hover { background:#263b5a;color:#fff; }
-.topbar-divider { background:#33445f; }
-.topbar-user { background:#263b5a; }
-.eyebrow { color:#2563eb; }
-.button-primary {
-  color:#fff;
-  background:#101b2f;
-  border-color:#101b2f;
-}
-.button-primary:hover { background:#1b2b45; }
-.metric-icon,.chart-icon,.activity-icon,.empty-symbol {
-  background:#eaf5fa;
-  color:#17446b;
-}
-.text-action { color:#17446b; }
-@media(max-width:760px) {
-  .topbar { background:#101b2f; }
-}
-
-
-/* White workspace header, retaining dark navy sidebar */
-.topbar {
-  background:#ffffff;
-  border-bottom:1px solid #e2e8f0;
-}
-.breadcrumb { color:#64748b; }
-.breadcrumb span { color:#cbd5e1; }
-.breadcrumb strong { color:#101b2f; }
-.environment-chip { background:#f1f5f9;color:#475569; }
-.icon-button { color:#64748b; }
-.icon-button:hover { background:#f1f5f9;color:#101b2f; }
-.topbar-divider { background:#e2e8f0; }
-.topbar-user { background:#e2e8f0; }
-@media(max-width:760px) {
-  .topbar { background:#ffffff; }
-}
-
 /* Mandatory TOTP MFA enrollment and verification */
 .mfa-qr-wrap{display:flex;justify-content:center;align-items:center;padding:14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;margin:0 0 15px}
 .mfa-qr{display:block;width:190px;height:190px;object-fit:contain}
@@ -362,45 +282,6 @@ h1,h2,h3,p { margin-top:0; }.page-heading h1 { font:800 27px Manrope;letter-spac
 @media(max-width:600px){.activity-log-title{align-items:flex-start;flex-direction:column;gap:6px}.activity-log-row{padding:13px 12px}.activity-log-meta{flex-direction:column;gap:4px}}
 
 
-/* Web2Table brand palette: black, white and red */
-:root {
-  --ink:#111111;
-  --muted:#737373;
-  --line:#e7e7e7;
-  --red:#d71920;
-  --red-dark:#b51219;
-}
-body { color:#111; background:#f7f7f7; }
-.sidebar { background:#101010; color:#fff; }
-.nav-label { color:#858585; }
-.nav-item { color:#c8c8c8; }
-.nav-item:hover { background:#242424; color:#fff; }
-.nav-item.active { background:#292929; color:#fff; box-shadow:inset 3px 0 #e31b23; }
-.nav-item.active svg { color:#ff454b; }
-.brand-mark { background:#d71920; }
-.topbar { background:#fff; }
-.breadcrumb strong,.metric-value,.panel-heading h2,.section-title-row h2,
-.module-empty h3,.activity-log-title strong { color:#111; }
-.button-primary { background:#d71920; border-color:#d71920; color:#fff; }
-.button-primary:hover { background:#b51219; border-color:#b51219; }
-.button-secondary { color:#222; border-color:#dedede; background:#fff; }
-.button-secondary:hover,.period-button:hover { border-color:#bdbdbd; background:#f5f5f5; }
-.eyebrow,.text-action { color:#d71920; }
-.metric-icon,.chart-icon,.activity-icon,.empty-symbol { color:#d71920; background:#fcebed; }
-.report-revenue-bar { background:#d71920; }
-.report-expense-bar { background:#777; }
-.activity-log-symbol { color:#d71920; background:#fcebed; }
-.activity-log-action { color:#8f151b; background:#fcebed; }
-.activity-log-details span { color:#454545; background:#f7f7f7; border-color:#e9e9e9; }
-.environment-chip { color:#555; background:#f2f2f2; }
-.status-pill { color:#555; background:#f2f2f2; }
-.profile-row span,.brand-lockup span { color:#aaa; }
-.connection-banner { border-color:#e6e0d8; background:#faf8f5; }
-.connection-icon { color:#555; background:#eee; }
-.report-positive { color:#222 !important; }
-.report-negative { color:#d71920 !important; }
-
-
 /* Financial reports: balanced three-card layout and consistent brand styling */
 .report-summary-grid { grid-template-columns:repeat(3,minmax(0,1fr)) !important; }
 .report-summary-grid .subscription-summary-card { min-height:112px; }
@@ -418,81 +299,6 @@ body { color:#111; background:#f7f7f7; }
 .nav-item.active { background:#292929 !important; box-shadow:inset 3px 0 #e31b23 !important; }
 @media(max-width:900px){.report-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr)) !important;}}
 @media(max-width:560px){.report-summary-grid{grid-template-columns:1fr !important;}.report-content-grid{grid-template-columns:1fr;}}
-
-
-/* Web2Table Business — deep-black theme matched to the platform login */
-:root {
-  color-scheme:dark;
-  --ink:#f5f5f5;
-  --muted:#a5a5a5;
-  --line:#292929;
-  --red:#ed1c24;
-  --red-dark:#c9151d;
-  background:#050505;
-}
-html,body,#root,.app-shell,.main-area { background:#050505; color:#f5f5f5; }
-.sidebar { background:#090909 !important; border-right:1px solid #292929; }
-.topbar { background:#090909 !important; border-bottom:1px solid #292929 !important; }
-.page-content { color:#f5f5f5; }
-.breadcrumb,.breadcrumb span { color:#969696; }
-.breadcrumb strong { color:#f5f5f5 !important; }
-.topbar-divider { background:#333; }
-.topbar .icon-button { color:#c7c7c7; }
-.topbar .icon-button:hover { background:#202020; color:#fff; }
-.environment-chip,.status-pill { background:#1d1d1d !important; color:#ccc !important; }
-.brand-lockup strong,.profile-row strong { color:#fff; }
-.brand-lockup span,.profile-row span { color:#aaa; }
-.nav-label { color:#858585 !important; }
-.nav-item { color:#c8c8c8 !important; }
-.nav-item.active { background:#241315 !important; color:#fff !important; box-shadow:inset 3px 0 #ed1c24 !important; }
-.nav-item.active svg { color:#ff4349 !important; }
-.nav-dot { background:#ed1c24; }
-.page-heading h1,.page-heading h2,.section-title-row h2,
-.panel-heading h2,.module-toolbar h2,.module-empty h3,
-.metric-value,.subscription-summary-card strong,
-.subscription-table td:first-child strong,.monthly-report-head strong,
-.activity-log-title strong,.chart-empty strong,.activity-empty strong,
-.connection-banner strong { color:#fff !important; }
-.page-heading p,.section-title-row p,.panel-heading p,.module-toolbar p,
-.subscription-summary-card span,.subscription-summary-card small,
-.metric-top,.metric-note,.module-empty p,.report-footnote,
-.chart-empty span,.activity-empty span,.list-empty,.page-footer { color:#a3a3a3 !important; }
-.panel,.metric-card,.subscription-summary-card,.subscription-list-panel,
-.module-panel { background:#101010 !important; border:1px solid #303030 !important; box-shadow:none !important; }
-.connection-banner { background:#181818 !important; border-color:#343434 !important; }
-.connection-banner span { color:#aaa !important; }
-.connection-icon,.metric-icon,.chart-icon,.activity-icon,.empty-symbol,
-.activity-log-symbol { color:#ff4149 !important; background:#291316 !important; }
-.button-primary,.main-area .button-primary,.auth-submit { background:#ed1c24 !important; border-color:#ed1c24 !important; color:#fff !important; }
-.button-primary:hover,.main-area .button-primary:hover,.auth-submit:hover { background:#c9151d !important; border-color:#c9151d !important; }
-.button-secondary,.period-button,.expense-filter,
-.report-range input,.report-range select,
-.main-area input,.main-area select,.main-area textarea {
-  background:#191919 !important;
-  border:1px solid #383838 !important;
-  color:#f5f5f5 !important;
-}
-.main-area input::placeholder,.main-area textarea::placeholder { color:#929292; }
-.main-area input:focus,.main-area select:focus,.main-area textarea:focus { outline-color:#ed1c24; border-color:#ed1c24 !important; }
-.button-secondary:hover,.period-button:hover { background:#262626 !important; border-color:#555 !important; }
-.report-bars i { background:#292929 !important; }
-.report-revenue-bar { background:#ed1c24 !important; }
-.report-expense-bar { background:#898989 !important; }
-.report-bars b,.monthly-report-head span,.category-report-list strong,
-.category-report-list span,.report-positive { color:#f5f5f5 !important; }
-.report-negative { color:#ff4b53 !important; }
-.monthly-report-row,.category-report-list>div,.activity-log-row,.list-empty,
-.subscription-table th,.subscription-table td { border-color:#2c2c2c !important; }
-.activity-log-action,.activity-log-details span { background:#222 !important; color:#ddd !important; border-color:#383838 !important; }
-.activity-log-meta,.report-bars small { color:#aaa !important; }
-.chart-grid i { border-color:#303030; }
-.pricing-tag,.subscription-state { background:#252525; color:#ddd; }
-table { color:#eaeaea; }
-thead,th { color:#aaa !important; background:#191919 !important; }
-td { color:#ddd; }
-a,.text-action,.eyebrow { color:#ff4149; }
-hr { border-color:#303030; }
-@media(hover:none){.nav-item:hover{background:transparent;color:#c8c8c8}.nav-item.active:hover{background:#241315;color:#fff}}
 
 
 /* Financial report contrast correction: restore visible KPI amounts on dark cards */
@@ -517,39 +323,6 @@ hr { border-color:#303030; }
 .report-positive { color:#ffffff !important; }
 .report-negative { color:#ff4b53 !important; }
 .report-content-grid .panel { background:#101010 !important; }
-
-
-/* Exact Web2Table marketing palette: black canvas, white type, vivid red */
-:root { color-scheme:dark; background:#000; --red:#f21d2b; --red-dark:#cf1420; --ink:#fff; --muted:#a6a6a6; --line:#292929; }
-html,body,#root,.app-shell,.main-area,.page-content { background:#000 !important; color:#fff !important; }
-.sidebar,.topbar { background:#000 !important; border-color:#242424 !important; }
-.panel,.metric-card,.subscription-summary-card,.subscription-list-panel,.module-panel,
-.connection-banner,.help-card,.workspace-switch { background:#080808 !important; border-color:#292929 !important; box-shadow:none !important; }
-.nav-item.active { background:#171717 !important; box-shadow:inset 3px 0 #f21d2b !important; }
-.nav-item.active svg,.eyebrow,.text-action { color:#f21d2b !important; }
-.button-primary,.main-area .button-primary,.auth-submit { background:#f21d2b !important; border-color:#f21d2b !important; color:#fff !important; }
-.button-primary:hover,.main-area .button-primary:hover,.auth-submit:hover { background:#cf1420 !important; border-color:#cf1420 !important; }
-.button-secondary,.period-button,.expense-filter,.report-range input,.report-range select,
-.main-area input,.main-area select,.main-area textarea { background:#0d0d0d !important; color:#fff !important; border-color:#303030 !important; }
-.page-heading h1,.page-heading h2,.section-title-row h2,.panel-heading h2,.module-toolbar h2,
-.module-empty h3,.metric-value,.subscription-summary-card strong,.monthly-report-head strong,
-.activity-log-title strong,.breadcrumb strong { color:#fff !important; }
-.page-heading p,.section-title-row p,.panel-heading p,.module-toolbar p,.metric-top,.metric-note,
-.subscription-summary-card span,.subscription-summary-card small,.report-footnote,
-.activity-log-meta,.page-footer { color:#a6a6a6 !important; }
-.report-summary-grid .subscription-summary-card strong,
-.report-summary-grid .subscription-summary-card .report-positive { color:#fff !important; }
-.report-summary-grid .subscription-summary-card .report-negative { color:#ff4b53 !important; }
-.report-positive { color:#fff !important; }
-.report-negative { color:#ff4b53 !important; }
-.report-revenue-bar { background:#f21d2b !important; }
-.report-expense-bar { background:#777 !important; }
-.report-bars i { background:#292929 !important; }
-.monthly-report-row,.category-report-list>div,.activity-log-row,
-.subscription-table th,.subscription-table td { border-color:#292929 !important; }
-.environment-chip,.status-pill,.activity-log-action,.activity-log-details span,
-.pricing-tag,.subscription-state { background:#171717 !important; color:#ddd !important; border-color:#303030 !important; }
-a { color:#f21d2b; }
 
 
 /* Tenant directory workspace */
