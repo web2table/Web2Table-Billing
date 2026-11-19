@@ -36,6 +36,17 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_MILZBeZJeOw-bOeMo3Nukg_BKGWt_Qr
         run: npm run build
 
+      - name: Verify production build output
+        run: |
+          set -euo pipefail
+          test -s dist/index.html
+          test -d dist/assets
+          grep -Eq 'src="/assets/[^"]+\.js"' dist/index.html
+          if grep -q '/src/main.tsx' dist/index.html; then
+            echo "ERROR: dist/index.html still points to source TSX."
+            exit 1
+          fi
+
       - name: Install lftp
         run: sudo apt-get update && sudo apt-get install -y lftp
 
@@ -52,10 +63,17 @@ jobs:
             set net:reconnect-interval-base 5
             set net:timeout 30
             set ftp:passive-mode true
-            mkdir -p assets
+            set cmd:fail-exit yes
             mirror --reverse --delete --verbose --parallel=1 ./dist/assets/ ./assets/
             put ./dist/.htaccess -o .htaccess
             # Publish the HTML last so it never points at bundles that have not uploaded yet.
             put ./dist/index.html -o index.html
+            # Read back the published entry point to verify the production bundle is live on FTP.
+            get index.html -o /tmp/hostinger-index.html
             bye
           "
+          grep -Eq 'src="/assets/[^"]+\.js"' /tmp/hostinger-index.html
+          if grep -q '/src/main.tsx' /tmp/hostinger-index.html; then
+            echo "ERROR: FTP target still serves the source entry point."
+            exit 1
+          fi
