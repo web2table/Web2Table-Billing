@@ -329,7 +329,7 @@ h1,h2,h3,p { margin-top:0; }.page-heading h1 { font:800 27px Manrope;letter-spac
 .tenant-record-main { display:grid; grid-template-columns:minmax(180px,1.5fr) 110px 100px 130px 20px; align-items:center; gap:13px; width:100%; padding:16px 10px; text-align:left; border:0; background:transparent; color:#fff; cursor:pointer; }
 .tenant-record-main:hover { background:#f7f7f8; }
 .tenant-identity { display:grid; gap:5px; min-width:0; }
-.tenant-identity strong,.tenant-branch-name strong { color:#fff; font-size:12px; font-weight:650; }
+.tenant-identity strong,.tenant-branch-name strong { color:#171717; font-size:12px; font-weight:650; }
 .tenant-identity small,.tenant-branch-name small { color:#999; font-size:10px; overflow-wrap:anywhere; }
 .tenant-status,.tenant-flag { display:inline-flex; width:max-content; align-items:center; padding:5px 8px; border-radius:99px; background:#303034; color:#ddd; font-size:9px; font-weight:650; text-transform:capitalize; }
 .tenant-status-active,.tenant-flag.is-active { background:#B32635; color:#fff; }
