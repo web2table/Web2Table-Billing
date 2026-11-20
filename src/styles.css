@@ -673,10 +673,16 @@ button,input,select,textarea { max-width:100%; }
   border-color:#b32635 !important;
 }
 .business-modal-close:hover { color:#b32635 !important; }
-.tenant-chevron.is-open,.tenant-branch-heading,.tenant-status-active,
-.tenant-flag.is-active,.tenant-chevron.is-open {
-  color:#b32635 !important;
+/* Tenant directory: light surfaces with accessible brand accents */
+.tenant-record { border-top:1px solid #e9e9ec !important; }
+.tenant-record-main { color:#171717 !important; }
+.tenant-record-main:hover { background:#f7f7f8 !important; }
+.tenant-branch-row { border-top:1px solid #e9e9ec !important; }
+.tenant-chevron { color:#77777f !important; }
+.tenant-chevron.is-open,.tenant-branch-heading {
+  color:#B32635 !important;
 }
 .tenant-status-active,.tenant-flag.is-active {
-  background:#3A2025 !important;
+  background:#B32635 !important;
+  color:#fff !important;
 }
