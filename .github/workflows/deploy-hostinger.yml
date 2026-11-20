@@ -64,7 +64,6 @@ jobs:
             set net:timeout 30
             set ftp:passive-mode true
             set cmd:fail-exit yes
-            cd public_html
             mirror --reverse --verbose --parallel=1 ./dist/ ./
             bye
           "
