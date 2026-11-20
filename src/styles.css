@@ -301,37 +301,24 @@ h1,h2,h3,p { margin-top:0; }.page-heading h1 { font:800 27px Manrope;letter-spac
 @media(max-width:560px){.report-summary-grid{grid-template-columns:1fr !important;}.report-content-grid{grid-template-columns:1fr;}}
 
 
-/* Financial report contrast correction: restore visible KPI amounts on dark cards */
+/* Financial report theme correction: use the original light workspace surfaces */
 .report-summary-grid .subscription-summary-card strong,
 .report-summary-grid .subscription-summary-card .report-positive,
-.report-summary-grid .subscription-summary-card .report-negative {
-  color:#ffffff !important;
-  display:block;
-  font-size:27px;
-  line-height:1.25;
-  opacity:1;
-}
-.report-summary-grid .subscription-summary-card {
-  background:#101010 !important;
-  border:1px solid #303030 !important;
-  min-height:112px;
-}
+.report-summary-grid .subscription-summary-card .report-negative { color:#171717 !important; display:block; font-size:27px; line-height:1.25; opacity:1; }
+.report-summary-grid .subscription-summary-card { background:#fff !important; border:1px solid #e9e9ec !important; min-height:112px; }
 .report-summary-grid .subscription-summary-card span,
-.report-summary-grid .subscription-summary-card small {
-  color:#b8b8b8 !important;
-}
-.report-positive { color:#ffffff !important; }
-.report-negative { color:#ff4b53 !important; }
-.report-content-grid .panel { background:#101010 !important; }
-
+.report-summary-grid .subscription-summary-card small { color:#77777f !important; }
+.report-positive { color:#171717 !important; }
+.report-negative { color:#b32635 !important; }
+.report-content-grid .panel { background:#fff !important; }
 
 /* Tenant directory workspace */
 .tenant-workspace { display:grid; gap:16px; }
 .tenant-toolbar { display:grid; gap:14px; }
 .tenant-stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
-.tenant-stat { display:grid; gap:7px; padding:15px 17px; border:1px solid #292929; border-radius:9px; background:#080808; }
-.tenant-stat span { color:#a6a6a6; font-size:10px; }
-.tenant-stat strong { color:#fff; font:750 23px Manrope; }
+.tenant-stat { display:grid; gap:7px; padding:15px 17px; border:1px solid #e9e9ec; border-radius:9px; background:#fff; }
+.tenant-stat span { color:#77777f; font-size:10px; }
+.tenant-stat strong { color:#171717; font:750 23px Manrope; }
 .tenant-actions { display:flex; align-items:center; justify-content:flex-end; gap:9px; flex-wrap:wrap; }
 .tenant-search { display:flex; align-items:center; gap:8px; min-width:240px; padding:0 11px; border:1px solid #303030; border-radius:7px; background:#0d0d0d; color:#aaa; }
 .tenant-search input { width:100%; min-width:0; height:36px; border:0 !important; outline:0; background:transparent !important; color:#fff !important; font:inherit; font-size:11px; }
