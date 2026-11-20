@@ -665,12 +665,21 @@ button,input,select,textarea { max-width:100%; }
 .report-expense-bar { background:#77777f !important; }
 .report-positive { color:#171717 !important; }
 .report-negative { color:#b32635 !important; }
-.business-modal-kicker,.business-modal-close:hover,
+.business-modal-kicker,.business-modal-close:hover {
+  color:#b32635 !important;
+}
 .business-modal .subscription-form-grid input:focus,
 .business-modal .subscription-form-grid select:focus,
 .business-modal .subscription-form-grid textarea:focus {
-  color:#b32635 !important;
   border-color:#b32635 !important;
+}
+.business-modal .subscription-form-grid textarea,
+.business-modal .subscription-form-grid textarea:focus {
+  color:#fff !important;
+  caret-color:#fff !important;
+}
+.business-modal .subscription-form-grid textarea::placeholder {
+  color:#aaa !important;
 }
 .business-modal-close:hover { color:#b32635 !important; }
 /* Tenant directory: light surfaces with accessible brand accents */
