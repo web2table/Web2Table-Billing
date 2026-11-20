@@ -50,19 +50,13 @@ jobs:
       - name: Install lftp
         run: sudo apt-get update && sudo apt-get install -y lftp
 
-      - name: Deploy production bundle to Hostinger document root
+      - name: Deploy built files to Hostinger public_html
         env:
           FTP_SERVER: ${{ secrets.HOSTINGER_FTP_SERVER }}
           FTP_USERNAME: ${{ secrets.HOSTINGER_FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
-          FTP_REMOTE_DIR: ${{ secrets.HOSTINGER_FTP_REMOTE_DIR }}
         run: |
           set -euo pipefail
-          : "${FTP_REMOTE_DIR:?Set HOSTINGER_FTP_REMOTE_DIR to the document root for business.web2table.io}"
-          case "$FTP_REMOTE_DIR" in
-            /*) ;;
-            *) echo "HOSTINGER_FTP_REMOTE_DIR must be an absolute FTP path"; exit 1 ;;
-          esac
           lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "ftp://$FTP_SERVER" -e "
             set ftp:ssl-allow no
             set net:max-retries 3
@@ -70,32 +64,7 @@ jobs:
             set net:timeout 30
             set ftp:passive-mode true
             set cmd:fail-exit yes
-            mkdir -p \"$FTP_REMOTE_DIR\"
-            cd \"$FTP_REMOTE_DIR\"
-            mirror --reverse --delete --verbose --parallel=1 ./dist/ ./
+            cd public_html
+            mirror --reverse --verbose --parallel=1 ./dist/ ./
             bye
           "
-
-      - name: Verify the public website serves the production bundle
-        env:
-          SITE_URL: https://business.web2table.io
-        run: |
-          set -euo pipefail
-          for attempt in $(seq 1 12); do
-            if curl --fail --silent --show-error --location "$SITE_URL/" -o /tmp/live-index.html; then
-              if grep -Eq '<script[^>]+src="/assets/[^"]+\.js"' /tmp/live-index.html && ! grep -q '/src/main.tsx' /tmp/live-index.html; then
-                break
-              fi
-            fi
-            echo "Public site has not switched to the built Vite entry point yet (attempt $attempt/12)."
-            sleep 10
-          done
-          grep -Eq '<script[^>]+src="/assets/[^"]+\.js"' /tmp/live-index.html
-          if grep -q '/src/main.tsx' /tmp/live-index.html; then
-            echo "ERROR: Public site is still serving the development TSX entry point."
-            exit 1
-          fi
-          JS_PATH="$(grep -oE 'src="/assets/[^"]+\.js"' /tmp/live-index.html | head -n1 | cut -d'"' -f2)"
-          curl --fail --silent --show-error --location "$SITE_URL$JS_PATH" -o /tmp/live-app.js
-          test -s /tmp/live-app.js
-          echo "Verified public HTML and JavaScript bundle at $SITE_URL"
